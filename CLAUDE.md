@@ -95,4 +95,4 @@ Chaque plugin est déclaré avec `"source": {"source": "git-subdir", "url": "...
 | Plugin | Skills |
 |--------|--------|
 | `declaration-impot-france` | `analyse-document-fiscal`, `optimisation-fiscale`, `expert-fiscal-qa`, `guide-declaration` |
-| `analyse-bilan-france` | `analyse-bilan`, `analyse-compte-resultat`, `ratios-financiers` |
+| `immobilier-locatif-france` | `analyse-bilan`, `analyse-compte-resultat`, `ratios-financiers` |

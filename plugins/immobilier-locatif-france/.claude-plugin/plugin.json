@@ -1,5 +1,5 @@
 {
-  "name": "analyse-bilan-france",
+  "name": "immobilier-locatif-france",
   "version": "2.5.0",
   "description": "Assistant d'analyse financière pour les sociétés de gestion immobilière locative françaises (SCI, foncières, SARL de famille). Analyse le bilan (LTV, FRNG, structure d'endettement), le compte de résultat (loyers, EBE locatif, cash-flow net) et les ratios spécialisés (DSCR, rendement brut/net, taux de vacance, effet de levier immobilier).",
   "author": {

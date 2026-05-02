@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "name": "analyse-bilan-france",
+      "name": "immobilier-locatif-france",
       "description": "Assistant d'analyse financière pour les sociétés de gestion immobilière locative (SCI, foncières, SARL de famille) : bilan immobilier, EBE locatif, cash-flow net, LTV, DSCR, rendement et taux de vacance.",
       "author": {
         "name": "Frederick Sales"
@@ -17,7 +17,7 @@
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/fsa64320/plugins-claude.git",
-        "path": "plugins/analyse-bilan-france",
+        "path": "plugins/immobilier-locatif-france",
         "ref": "main"
       }
     },
