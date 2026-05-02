@@ -1,0 +1,8 @@
+{
+  "name": "declaration-impot-france",
+  "description": "Assistant fiscal complet pour les contribuables français. Analyse les documents fiscaux (IFU, relevés SCPI, attestations), guide la déclaration 2042/2044/2047, optimise la fiscalité et répond aux questions fiscales.",
+  "author": {
+    "name": "Frederick Sales",
+    "email": "frederick.sales@gmail.com"
+  }
+}

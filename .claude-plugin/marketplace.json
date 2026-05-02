@@ -1,0 +1,25 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "plugin-fiscal-france",
+  "description": "Plugin d'aide à la déclaration d'impôts en France : analyse de documents fiscaux (IFU, SCPI), guide de déclaration, optimisation fiscale et questions/réponses avec un expert fiscal virtuel.",
+  "owner": {
+    "name": "Frederick Sales",
+    "email": "frederick.sales@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "declaration-impot-france",
+      "description": "Assistant fiscal complet pour les contribuables français : analyse IFU/SCPI, guide déclaration 2042, optimisation, Q&A expert.",
+      "author": {
+        "name": "Frederick Sales"
+      },
+      "category": "productivity",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/fredericksales/plugin-fiscal-france.git",
+        "path": "plugins/declaration-impot-france",
+        "ref": "main"
+      }
+    }
+  ]
+}
