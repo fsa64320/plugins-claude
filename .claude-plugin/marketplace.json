@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "plugin-fiscal-france",
-  "description": "Plugin d'aide à la déclaration d'impôts en France : analyse de documents fiscaux (IFU, SCPI), guide de déclaration, optimisation fiscale et questions/réponses avec un expert fiscal virtuel.",
+  "name": "mes-plugins-claude",
+  "description": "Marketplace personnel de plugins Claude Code — Frederick Sales.",
   "owner": {
     "name": "Frederick Sales",
     "email": "frederick.sales@gmail.com"
@@ -16,7 +16,7 @@
       "category": "productivity",
       "source": {
         "source": "git-subdir",
-        "url": "https://github.com/fsa64320/plugin-fiscal-france.git",
+        "url": "https://github.com/fsa64320/mes-plugins-claude.git",
         "path": "plugins/declaration-impot-france",
         "ref": "main"
       }
