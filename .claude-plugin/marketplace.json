@@ -8,6 +8,20 @@
   },
   "plugins": [
     {
+      "name": "analyse-bilan-france",
+      "description": "Assistant d'analyse financière pour les bilans annuels de sociétés françaises : analyse bilan, compte de résultat, ratios financiers et diagnostic de santé financière.",
+      "author": {
+        "name": "Frederick Sales"
+      },
+      "category": "productivity",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/fsa64320/plugins-claude.git",
+        "path": "plugins/analyse-bilan-france",
+        "ref": "main"
+      }
+    },
+    {
       "name": "declaration-impot-france",
       "description": "Assistant fiscal complet pour les contribuables français : analyse IFU/SCPI, guide déclaration 2042, optimisation, Q&A expert.",
       "author": {
