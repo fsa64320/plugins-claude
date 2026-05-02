@@ -5,7 +5,7 @@ Marketplace personnel de plugins [Claude Code](https://claude.ai/code).
 ## Ajouter ce marketplace
 
 ```bash
-claude plugin marketplace add github:fsa64320/mes-plugins-claude
+claude plugin marketplace add github:fsa64320/plugins-claude
 ```
 
 ## Plugins disponibles
@@ -35,7 +35,7 @@ claude plugin install declaration-impot-france
 ## Structure du repo
 
 ```
-mes-plugins-claude/
+plugins-claude/
 ├── .claude-plugin/
 │   └── marketplace.json          ← index de tous les plugins
 ├── plugins/

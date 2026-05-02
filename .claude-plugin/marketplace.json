@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "mes-plugins-claude",
+  "name": "plugins-claude",
   "description": "Marketplace personnel de plugins Claude Code — Frederick Sales.",
   "owner": {
     "name": "Frederick Sales",
@@ -16,7 +16,7 @@
       "category": "productivity",
       "source": {
         "source": "git-subdir",
-        "url": "https://github.com/fsa64320/mes-plugins-claude.git",
+        "url": "https://github.com/fsa64320/plugins-claude.git",
         "path": "plugins/declaration-impot-france",
         "ref": "main"
       }
