@@ -1,7 +1,7 @@
 {
   "name": "analyse-bilan-france",
-  "version": "1.0.0",
-  "description": "Assistant d'analyse financière pour les bilans annuels de sociétés françaises. Analyse les états financiers (bilan, compte de résultat, annexes), calcule les ratios financiers clés, diagnostique la santé financière et identifie les points d'attention.",
+  "version": "2.5.0",
+  "description": "Assistant d'analyse financière pour les sociétés de gestion immobilière locative françaises (SCI, foncières, SARL de famille). Analyse le bilan (LTV, FRNG, structure d'endettement), le compte de résultat (loyers, EBE locatif, cash-flow net) et les ratios spécialisés (DSCR, rendement brut/net, taux de vacance, effet de levier immobilier).",
   "author": {
     "name": "Frederick Sales",
     "email": "frederick.sales@gmail.com"

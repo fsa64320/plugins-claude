@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "analyse-bilan-france",
-      "description": "Assistant d'analyse financière pour les bilans annuels de sociétés françaises : analyse bilan, compte de résultat, ratios financiers et diagnostic de santé financière.",
+      "description": "Assistant d'analyse financière pour les sociétés de gestion immobilière locative (SCI, foncières, SARL de famille) : bilan immobilier, EBE locatif, cash-flow net, LTV, DSCR, rendement et taux de vacance.",
       "author": {
         "name": "Frederick Sales"
       },

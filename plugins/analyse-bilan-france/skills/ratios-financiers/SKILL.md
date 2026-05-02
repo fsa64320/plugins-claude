@@ -1,241 +1,232 @@
 ---
 name: ratios-financiers
-description: Ce skill doit être utilisé quand l'utilisateur demande une analyse par ratios financiers ou pose des questions sur la solidité financière d'une société française : "ratios financiers", "solvabilité", "liquidité", "rentabilité", "autonomie financière", "capacité de remboursement", "levier financier", "ROE", "ROA", "endettement", "analyse financière complète", "taux d'endettement", "liquidité générale", "liquidité réduite", "diagnostic financier", "santé financière".
-version: 1.0.0
+description: Ce skill doit être utilisé quand l'utilisateur demande des ratios financiers pour une société immobilière locative ou pose des questions sur la rentabilité et la santé financière d'une SCI, foncière, SARL de famille : "LTV", "loan-to-value", "DSCR", "debt service coverage ratio", "rendement locatif", "rendement brut", "rendement net", "taux de vacance", "effet de levier immobilier", "levier financier", "taux d'endettement", "autonomie financière", "capacité de remboursement", "ratios immobiliers", "solvabilité", "rentabilité immobilière".
+version: 2.0.0
 allowed-tools: [Read, Glob]
 ---
 
-# Calcul et analyse des ratios financiers
+# Ratios financiers d'une société de gestion immobilière locative
 
 ## Objectif
 
-Calculer l'ensemble des ratios financiers clés d'une société française à partir de son bilan et de son compte de résultat, comparer ces ratios aux benchmarks sectoriels et formuler un diagnostic financier global avec des recommandations concrètes.
+Calculer et interpréter les ratios financiers adaptés aux sociétés dont l'activité est la détention d'actifs immobiliers financés à crédit et la génération de revenus locatifs. Ces ratios permettent d'évaluer la solidité patrimoniale, la soutenabilité de l'endettement, la performance locative et l'exposition aux risques spécifiques du secteur.
 
-## Prérequis
+## Organisation des ratios
 
-Avant de calculer les ratios, s'assurer de disposer des données suivantes :
+Les ratios sont organisés en quatre familles selon les décisions de gestion qu'ils informent :
 
-**Du bilan :**
-- Total actif
-- Actif circulant (stocks + créances clients + disponibilités + VMP)
-- Créances clients + disponibilités + VMP (sans les stocks)
-- Capitaux propres
-- Dettes financières totales (LT + CT, hors dettes d'exploitation)
-- Dettes à court terme (dettes fournisseurs + dettes fiscales et sociales + concours bancaires + part CT des emprunts)
+1. **Ratios de structure de financement** — comment l'actif est financé
+2. **Ratios de performance locative** — ce que rapportent les biens
+3. **Ratios de soutenabilité de la dette** — capacité à rembourser
+4. **Ratios de solvabilité et risque** — résistance aux chocs
 
-**Du compte de résultat :**
-- Chiffre d'affaires HT
-- EBE (Excédent Brut d'Exploitation)
-- Résultat d'exploitation
-- Résultat net
-- CAF (Capacité d'Autofinancement)
+---
 
-Si des données sont manquantes, les indiquer et proposer de calculer les ratios disponibles.
+## Famille 1 — Structure de financement
 
-## Processus
+### Loan-to-Value (LTV)
 
-### 1. Ratios de structure et de solvabilité
-
-Ces ratios mesurent la solidité financière à long terme et l'indépendance vis-à-vis des créanciers.
-
-**Autonomie financière**
 ```
-Autonomie financière = Capitaux propres / Total passif × 100
-```
-| Valeur | Appréciation |
-|--------|--------------|
-| > 40% | Bon |
-| 30% - 40% | Acceptable |
-| < 30% | Vigilance |
-
-**Taux d'endettement (gearing)**
-```
-Taux d'endettement = Dettes financières nettes / Capitaux propres
-                   (Dettes financières nettes = Dettes financières brutes - Disponibilités - VMP)
-```
-| Valeur | Appréciation |
-|--------|--------------|
-| < 0,5 | Bon |
-| 0,5 - 1 | Acceptable |
-| > 1 | Vigilance |
-
-**Capacité de remboursement**
-```
-Capacité de remboursement = Dettes financières nettes / CAF  (en années)
-```
-| Valeur | Appréciation |
-|--------|--------------|
-| < 2 ans | Bon |
-| 2 - 3 ans | Acceptable |
-| > 3 ans | Vigilance (seuil bancaire généralement fixé à 3-4 ans) |
-
-**Couverture des intérêts (Interest Coverage)**
-```
-Couverture des intérêts = EBE / Charges financières nettes
-```
-| Valeur | Appréciation |
-|--------|--------------|
-| > 5 | Bon |
-| 2 - 5 | Acceptable |
-| < 2 | Vigilance |
-
-### 2. Ratios de liquidité
-
-Ces ratios mesurent la capacité de l'entreprise à honorer ses obligations à court terme.
-
-**Liquidité générale (Current Ratio)**
-```
-Liquidité générale = Actif circulant total / Dettes à court terme
-```
-| Valeur | Appréciation |
-|--------|--------------|
-| > 1,5 | Bon |
-| 1 - 1,5 | Acceptable |
-| < 1 | Vigilance (l'actif circulant ne couvre pas les dettes CT) |
-
-**Liquidité réduite (Quick Ratio)**
-```
-Liquidité réduite = (Créances clients + Disponibilités + VMP) / Dettes à court terme
-```
-| Valeur | Appréciation |
-|--------|--------------|
-| > 1 | Bon |
-| 0,7 - 1 | Acceptable |
-| < 0,7 | Vigilance |
-
-**Liquidité immédiate (Cash Ratio)**
-```
-Liquidité immédiate = (Disponibilités + VMP) / Dettes à court terme
-```
-| Valeur | Appréciation |
-|--------|--------------|
-| > 0,3 | Bon |
-| 0,1 - 0,3 | Acceptable |
-| < 0,1 | Vigilance |
-
-### 3. Ratios de rentabilité
-
-Ces ratios mesurent l'efficacité de l'entreprise à générer du profit.
-
-**ROE — Return on Equity (Rentabilité des capitaux propres)**
-```
-ROE = Résultat net / Capitaux propres × 100
-```
-| Valeur | Appréciation |
-|--------|--------------|
-| > 15% | Bon |
-| 8% - 15% | Acceptable |
-| < 8% | Faible (inférieur au coût du capital moyen) |
-
-**ROA — Return on Assets (Rentabilité économique)**
-```
-ROA = Résultat net / Total actif × 100
-  ou
-ROA = Résultat d'exploitation × (1 - taux IS) / Total actif × 100  (vision économique)
-```
-| Valeur | Appréciation |
-|--------|--------------|
-| > 8% | Bon |
-| 4% - 8% | Acceptable |
-| < 4% | Faible |
-
-**Rentabilité opérationnelle (ROCE)**
-```
-ROCE = Résultat d'exploitation / (Capitaux propres + Dettes financières nettes) × 100
+LTV = Encours total des emprunts immobiliers / Valeur des actifs immobiliers
 ```
 
-**Taux de marge nette**
-```
-Taux de marge nette = Résultat net / CA HT × 100
-```
+| LTV | Appréciation |
+|-----|--------------|
+| < 50% | Très faible endettement — sécurité élevée |
+| 50–70% | Niveau courant pour un investissement prudent |
+| 70–80% | Niveau standard dans l'immobilier locatif |
+| 80–90% | Exposition élevée — faible marge en cas de dépréciation |
+| > 90% | Critique — risque de valeur nette négative |
 
-**Taux de marge EBE**
-```
-Taux de marge EBE = EBE / CA HT × 100
-```
-| Secteur indicatif | Benchmark EBE/CA |
-|-------------------|-----------------|
-| Distribution / Négoce | 2% - 5% |
-| Services | 8% - 20% |
-| Industrie | 6% - 15% |
-| BTP | 3% - 8% |
+- Si la valeur de marché n'est pas disponible, utiliser la VNC comptable comme proxy en précisant la limite (VNC peut sous-estimer la valeur réelle sur des biens anciens)
+- Recommander une expertise immobilière si la VNC et la valeur de marché semblent diverger significativement
 
-### 4. Ratios d'activité (gestion du cycle d'exploitation)
+### Taux d'autonomie financière immobilière
 
-**Délai de rotation des stocks (DRS)**
 ```
-DRS = Stocks / (Achats HT + Variation de stocks) × 360  (en jours)
+Taux d'autonomie = Capitaux propres / Total passif
 ```
 
-**Délai de crédit clients (DCC)**
+| Ratio | Appréciation |
+|-------|--------------|
+| > 30% | Solide — les fonds propres couvrent un tiers du financement |
+| 15–30% | Courant dans l'immobilier locatif à crédit |
+| 5–15% | Faible — forte dépendance bancaire |
+| < 5% | Très faible — vulnérable aux aléas |
+
+### Ratio dettes financières / Capitaux propres (gearing)
+
 ```
-DCC = Créances clients TTC / CA TTC × 360  (en jours)
+Gearing = Dettes financières totales / Capitaux propres
 ```
-Benchmark : < 45 jours (norme légale de paiement en France : 60 jours fin de mois)
 
-**Délai de crédit fournisseurs (DCF)**
+- Gearing < 3 : endettement maîtrisé
+- Gearing 3–7 : niveau élevé mais courant dans l'immobilier patrimonial
+- Gearing > 10 : très fortement endetté — structure fragile
+- Gearing négatif (CP négatifs) : situation de surendettement comptable
+
+---
+
+## Famille 2 — Performance locative
+
+### Rendement locatif brut
+
 ```
-DCF = Dettes fournisseurs TTC / Achats TTC × 360  (en jours)
+Rendement brut = Loyers annuels bruts / Valeur d'acquisition des biens (ou valeur de marché)
 ```
-Benchmark : 30 - 60 jours
 
-### 5. Présenter le tableau récapitulatif complet
+| Rendement brut | Appréciation (ordre de grandeur France 2024) |
+|----------------|----------------------------------------------|
+| < 3% | Faible — marchés très tendus (Paris centre, Côte d'Azur) |
+| 3–5% | Moyen — grandes métropoles régionales |
+| 5–8% | Bon — villes moyennes, immobilier ancien |
+| > 8% | Élevé — à vérifier : risque de vacance ou de dégradation élevé ? |
 
-| Catégorie | Ratio | Valeur calculée | Benchmark indicatif | Appréciation |
-|-----------|-------|-----------------|--------------------|-|
-| Structure | Autonomie financière | X% | > 30% | Bon / Acceptable / Vigilance |
-| Structure | Taux d'endettement | X | < 1 | Bon / Acceptable / Vigilance |
-| Structure | Capacité de remboursement | X ans | < 3 ans | Bon / Acceptable / Vigilance |
-| Structure | Couverture des intérêts | X | > 5 | Bon / Acceptable / Vigilance |
-| Liquidité | Liquidité générale | X | > 1,5 | Bon / Acceptable / Vigilance |
-| Liquidité | Liquidité réduite | X | > 0,7 | Bon / Acceptable / Vigilance |
-| Liquidité | Liquidité immédiate | X | > 0,3 | Bon / Acceptable / Vigilance |
-| Rentabilité | ROE | X% | > 10% | Bon / Acceptable / Vigilance |
-| Rentabilité | ROA | X% | > 5% | Bon / Acceptable / Vigilance |
-| Rentabilité | Taux de marge nette | X% | Selon secteur | Bon / Acceptable / Vigilance |
-| Rentabilité | Taux de marge EBE | X% | Selon secteur | Bon / Acceptable / Vigilance |
-| Activité | Délai clients | X jours | < 45 j | Bon / Acceptable / Vigilance |
-| Activité | Délai fournisseurs | X jours | 30-60 j | Bon / Acceptable / Vigilance |
-| Activité | Rotation des stocks | X jours | Selon secteur | Bon / Acceptable / Vigilance |
+### Rendement locatif net de charges (avant financement)
 
-Légende des appréciations :
-- **Bon** : ratio dans la zone optimale
-- **Acceptable** : ratio dans la norme, mais à surveiller
-- **Vigilance** : ratio dégradé, action recommandée
+```
+Rendement net = EBE locatif / Valeur d'acquisition des biens
+              = (Loyers bruts - Charges décaissables d'exploitation) / Valeur des actifs
+```
 
-### 6. Comparer avec les benchmarks sectoriels via data.gouv.fr
+- Mesure la vraie performance économique hors financement
+- Écart brut/net élevé (> 2 points) : charges d'exploitation excessives ou mal maîtrisées
 
-Si le code NAF/APE de l'entreprise est connu, interroger data.gouv.fr pour obtenir les statistiques sectorielles de la Banque de France ou de l'INSEE et positionner l'entreprise (quartile supérieur / médiane / quartile inférieur) par rapport à ses pairs.
+### Rendement locatif net après financement (cash-on-cash return)
 
-### 7. Formuler le diagnostic global
+```
+Rendement net après financement = Cash-flow net annuel / Apport personnel (fonds propres investis)
+                                = Cash-flow locatif net / Capitaux propres
+```
 
-Synthétiser l'analyse en 3 à 5 points structurés :
+- Mesure le retour sur l'investissement en fonds propres
+- Peut être négatif (effort d'épargne) ou très élevé grâce à l'effet de levier
 
-**Structure du diagnostic :**
-1. **Point fort principal** : identifier le ou les ratios qui se distinguent positivement
-2. **Point de vigilance principal** : identifier le ou les ratios les plus préoccupants
-3. **Tendance** : si les données N et N-1 sont disponibles, indiquer si la situation s'améliore ou se dégrade
-4. **Profil de risque global** : faible / modéré / élevé, avec justification
-5. **Positionnement sectoriel** : si les données sectorielles sont disponibles
+### Taux de vacance locative
 
-### 8. Formuler des recommandations concrètes
+```
+Taux de vacance = Jours/mois de vacance dans l'année / 365 (ou 12)
+```
+Ou, si on dispose des montants :
+```
+Taux de vacance financier = (Loyers théoriques - Loyers perçus) / Loyers théoriques
+```
 
-Pour chaque ratio en zone "Vigilance", proposer un axe d'amélioration actionnable :
+| Taux de vacance | Appréciation |
+|-----------------|--------------|
+| < 3% | Excellent — très bonne occupation |
+| 3–7% | Normal — correspond à 1 mois de vacance sur l'année |
+| 7–15% | Élevé — à investiguer (localisation, état du bien, prix) |
+| > 15% | Critique — risque structurel sur la rentabilité |
 
-| Ratio dégradé | Axe d'amélioration |
-|---------------|-------------------|
-| Autonomie financière faible | Augmentation de capital, mise en réserve du résultat, réduction des distributions |
-| Endettement élevé | Remboursement anticipé, renégociation de la structure de dette, cession d'actifs non stratégiques |
-| Capacité de remboursement > 3 ans | Amélioration de la CAF (hausse des marges, réduction des charges fixes), report des investissements |
-| Liquidité tendue | Optimisation du BFR (réduction des délais clients, gestion des stocks), ouverture d'une ligne de crédit confirmée |
-| Délais clients élevés | Mise en place d'une politique de relance, affacturage, conditions de paiement contractuelles |
-| ROE faible | Amélioration des marges opérationnelles, révision de la structure de coûts, optimisation fiscale |
+---
+
+## Famille 3 — Soutenabilité de la dette
+
+### Debt Service Coverage Ratio (DSCR)
+
+```
+DSCR = EBE locatif / Annuités totales d'emprunt (capital remboursé + intérêts)
+```
+
+| DSCR | Appréciation |
+|------|--------------|
+| > 1,5 | Très confortable — large marge de sécurité |
+| 1,2–1,5 | Confortable — niveau attendu par les banques |
+| 1,0–1,2 | Tendu — peu de marge face à la vacance |
+| < 1,0 | Insuffisant — les loyers ne couvrent pas le remboursement |
+
+- DSCR minimum bancaire généralement exigé à l'octroi : 1,1 à 1,25 selon les établissements
+- Calculer le DSCR en scénario de stress : que se passe-t-il avec 15% de vacance ou +1% de taux variable ?
+
+### Capacité de remboursement
+
+```
+Capacité de remboursement = Dettes financières totales / CAF annuelle
+```
+
+- < 5 ans : excellent
+- 5–10 ans : correct
+- 10–15 ans : acceptable pour l'immobilier (actifs de très longue durée de vie)
+- > 15 ans : élevé — la CAF ne rembourse l'encours qu'en très longue durée
+
+### Couverture des intérêts
+
+```
+Couverture des intérêts = EBE locatif / Charges financières (intérêts seuls)
+```
+
+- > 2 : charges financières bien couvertes
+- 1,5–2 : niveau acceptable
+- 1,0–1,5 : fragile — une légère baisse des loyers rend les intérêts non couverts
+- < 1 : les intérêts seuls ne sont pas couverts par l'EBE — situation non soutenable
+
+### Ratio loyers / charges financières
+
+```
+Ratio loyers/intérêts = Loyers bruts annuels / Intérêts d'emprunt annuels
+```
+
+- Indicateur simple et rapide : les loyers doivent couvrir a minima 2× les intérêts pour laisser de la marge aux charges d'exploitation et au remboursement du capital
+
+---
+
+## Famille 4 — Solvabilité et risque
+
+### Effet de levier immobilier
+
+```
+Effet de levier = Rendement des actifs (ROA) - Coût de la dette (taux d'intérêt moyen)
+ROA = EBE locatif / Valeur totale des actifs immobiliers
+Coût de la dette = Charges financières (intérêts) / Encours moyen des emprunts
+```
+
+- Effet de levier positif (ROA > coût de la dette) : l'endettement amplifie la rentabilité des fonds propres — le crédit est rentable
+- Effet de levier nul : le crédit ne crée pas de valeur
+- Effet de levier négatif (ROA < coût de la dette) : l'endettement détruit de la rentabilité — situation fréquente en période de taux élevés sur des biens à faible rendement
+
+### Solvabilité globale (ratio de couverture des dettes)
+
+```
+Solvabilité = Total actif net (VNC) / Total des dettes
+```
+
+- > 1,5 : bonne solvabilité
+- 1,0–1,5 : acceptable
+- < 1,0 : actifs insuffisants pour couvrir les dettes en valeur comptable (à pondérer par la valeur de marché)
+
+### Analyse de sensibilité (stress tests)
+
+Calculer l'impact sur le cash-flow net et le DSCR selon trois scénarios :
+
+| Scénario | Hypothèse | Impact sur EBE | DSCR résultant |
+|----------|-----------|----------------|----------------|
+| Base | Situation actuelle | - | X,X |
+| Vacance +15% | 15% des loyers perdus | -15% EBE | X,X |
+| Taux variable +2% | Si emprunt à taux variable | Intérêts +X€ | X,X |
+| Charges +20% | Hausse copropriété/taxe foncière | -X% EBE | X,X |
+
+---
+
+## Présentation synthétique
+
+| Ratio | Valeur calculée | Benchmark secteur | Appréciation |
+|-------|----------------|-------------------|--------------|
+| LTV | X% | 70–80% | Faible / Normal / Élevé |
+| Autonomie financière | X% | 15–25% | Faible / Correct / Solide |
+| Gearing | X | 3–7× | Maîtrisé / Élevé / Excessif |
+| Rendement brut | X% | 3–8% selon localisation | Faible / Moyen / Bon |
+| Rendement net (avant financement) | X% | 2–6% | Faible / Moyen / Bon |
+| Taux de vacance | X% | < 7% | Excellent / Normal / Élevé |
+| DSCR | X,X | > 1,2 | Confortable / Tendu / Insuffisant |
+| Couverture des intérêts | X,X | > 1,5 | Solide / Fragile / Critique |
+| Capacité de remboursement | X ans | 10–15 ans | Bon / Acceptable / Long |
+| Effet de levier | +/- X pts | Positif souhaité | Favorable / Neutre / Défavorable |
 
 ## Règles importantes
 
-- Toujours calculer les ratios à partir des données fournies sans extrapolation
-- Préciser les données manquantes qui empêchent le calcul d'un ratio
-- Contextualiser les benchmarks : un ratio "mauvais" dans un secteur peut être normal dans un autre
-- Ne pas conclure à une situation de défaillance sur la base des seuls ratios — ils sont des indicateurs, pas des certitudes
-- Rappeler que cette analyse est indicative et ne remplace pas l'avis d'un expert-comptable, d'un commissaire aux comptes ou d'un conseiller financier
-- Pour les entreprises en difficulté avérée, mentionner les dispositifs d'accompagnement : CODEFI, médiateur du crédit aux entreprises, procédures amiables (mandat ad hoc, conciliation)
+- Ne jamais calculer un ratio sans préciser si la valeur utilisée est la VNC comptable ou la valeur de marché
+- Pour les sociétés SCI à l'IR, signaler que la capacité de remboursement des emprunts peut s'appuyer sur des ressources extérieures (revenus personnels des associés) non visibles dans les comptes sociaux
+- Préciser l'exercice concerné et, si N-1 est disponible, présenter l'évolution
+- Pour les emprunts in fine, adapter le calcul du DSCR : seuls les intérêts sont annuités — le capital est remboursé en une fois à l'échéance (risque de refinancement)
+- Rappeler que cette analyse est indicative et ne remplace pas l'avis d'un expert-comptable, d'un gestionnaire de patrimoine ou d'un conseiller en gestion de fortune

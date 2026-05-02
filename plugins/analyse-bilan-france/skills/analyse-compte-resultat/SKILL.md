@@ -1,166 +1,176 @@
 ---
 name: analyse-compte-resultat
-description: Ce skill doit être utilisé quand l'utilisateur partage un compte de résultat ou pose des questions sur la performance économique d'une société française : "CA", "chiffre d'affaires", "résultat net", "EBE", "excédent brut d'exploitation", "marge", "charges d'exploitation", "résultat d'exploitation", "résultat financier", "résultat exceptionnel", "soldes intermédiaires de gestion", "SIG", "valeur ajoutée", "marge commerciale", "résultat courant", "capacité d'autofinancement", "CAF".
-version: 1.0.0
+description: Ce skill doit être utilisé quand l'utilisateur partage un compte de résultat d'une société immobilière locative ou pose des questions sur les revenus et charges d'une SCI, foncière, SARL de famille ou société de gestion locative : "loyers", "revenus locatifs", "charges d'exploitation", "intérêts d'emprunt", "taxe foncière", "amortissements", "résultat net", "cash-flow locatif", "cash-flow net", "capacité d'autofinancement", "CAF", "rendement", "résultat d'exploitation", "charges financières", "remboursement d'emprunt", "annuités", "résultat foncier".
+version: 2.0.0
 allowed-tools: [Read, Glob]
 ---
 
-# Analyse du compte de résultat
+# Analyse du compte de résultat d'une société de gestion immobilière locative
 
 ## Objectif
 
-Calculer les Soldes Intermédiaires de Gestion (SIG) à partir du compte de résultat d'une société française, mesurer les taux de marge, identifier les postes de charges anormaux et formuler un diagnostic sur la performance économique de l'entreprise.
+Analyser la performance économique d'une société dont les revenus proviennent exclusivement ou principalement de loyers. Calculer les soldes clés adaptés au secteur immobilier (EBE locatif, résultat d'exploitation, cash-flow locatif, cash-flow après service de la dette), mesurer la rentabilité et la capacité à couvrir les charges financières liées aux emprunts immobiliers.
+
+## Spécificités du compte de résultat immobilier locatif
+
+La cascade des SIG standard (marge commerciale → production → VA → EBE) est partiellement inadaptée :
+- **Pas de ventes de marchandises ni de production vendue** : le chiffre d'affaires = loyers perçus (hors charges locatives refacturées)
+- **Charges d'exploitation dominées par les amortissements et les charges financières** : ces deux postes peuvent dépasser les loyers bruts dans les premières années
+- **La distinction charges décaissables / non-décaissables est essentielle** : les amortissements réduisent le résultat comptable mais ne sont pas des sorties de trésorerie
+- **Le cash-flow après service de la dette** (loyers - charges décaissables - annuités capital+intérêts) est l'indicateur de gestion le plus important pour l'investisseur
 
 ## Processus
 
-### 1. Extraire les données brutes du compte de résultat
+### 1. Extraire et structurer les données du compte de résultat
 
-Collecter et organiser les éléments suivants depuis le document fourni :
-
-**Produits d'exploitation**
-- Ventes de marchandises
-- Production vendue (biens et services)
-- Production stockée / déstockée
-- Production immobilisée
-- Subventions d'exploitation
-- Reprises sur provisions et transferts de charges
-- Autres produits
+**Produits d'exploitation — revenus locatifs**
+- Loyers bruts perçus (hors charges locatives récupérables)
+- Charges locatives refacturées aux locataires (provisions pour charges de copropriété)
+- Indemnités d'assurance loyers impayés encaissées
+- Produits accessoires (parking, cave, antenne)
+- Reprises sur provisions pour dépréciation de créances locataires
 
 **Charges d'exploitation**
-- Achats de marchandises (± variation de stocks)
-- Achats de matières premières et autres approvisionnements (± variation de stocks)
-- Autres achats et charges externes (sous-traitance, loyers, honoraires...)
-- Impôts, taxes et versements assimilés
-- Charges de personnel (salaires + charges sociales)
-- Dotations aux amortissements et provisions
-- Autres charges
+
+*Charges décaissables (sorties de trésorerie réelles)*
+- Charges de copropriété non récupérables sur locataires
+- Taxe foncière (sur les propriétés bâties)
+- Primes d'assurance (multirisque immeuble, loyers impayés)
+- Honoraires de gestion locative (agence ou administrateur de biens)
+- Frais d'entretien courant et petites réparations
+- Frais de remise en état entre deux locataires
+- Frais comptables, juridiques, d'assemblée générale
+
+*Charges non-décaissables (réductions comptables sans sortie de trésorerie)*
+- Dotations aux amortissements des immeubles (linéaire sur 25-50 ans selon composants)
+- Dotations aux amortissements des travaux incorporés
+- Dotations aux provisions pour créances douteuses (loyers impayés)
 
 **Résultat financier**
-- Produits financiers (intérêts reçus, dividendes, produits de cessions VMP)
-- Charges financières (intérêts des emprunts, agios, pertes de change)
+- Charges financières : intérêts des emprunts immobiliers, frais de dossier étalés, assurance emprunteur (quote-part intérêts)
+- Produits financiers : intérêts sur comptes d'épargne, sur dépôts de garantie placés (si applicable)
+- Note : les intérêts d'emprunt constituent souvent la charge financière la plus lourde, surtout en début de crédit
 
 **Résultat exceptionnel**
-- Produits exceptionnels (cessions d'actifs, subventions d'investissement virées)
-- Charges exceptionnelles (pénalités, VNC des actifs cédés, provisions exceptionnelles)
+- Plus ou moins-values de cession d'immeuble (produit de cession - VNC)
+- Remboursements d'assurance exceptionnels
+- Pénalités reçues ou versées
 
-**Participation et impôt**
-- Participation des salariés aux résultats
-- Impôts sur les bénéfices (IS)
+**Impôts**
+- IS (si société soumise à l'IS : SARL, SAS, SCI à l'IS)
+- Pour les SCI à l'IR : pas d'IS au niveau société, le résultat est imposé directement chez les associés au titre des revenus fonciers — le compte de résultat affiche un résultat avant impôt des associés
 
-### 2. Calculer les Soldes Intermédiaires de Gestion (SIG)
+### 2. Calculer les soldes clés adaptés au secteur immobilier
 
-Appliquer la cascade des SIG dans l'ordre suivant :
+**Revenus locatifs nets de charges récupérables**
+```
+Revenus locatifs nets = Loyers bruts - Charges locatives non récupérées sur locataires
+```
+- C'est la base de calcul des rendements
 
-**Marge commerciale (MC)**
+**Excédent Brut d'Exploitation locatif (EBE locatif)**
 ```
-MC = Ventes de marchandises HT - Coût d'achat des marchandises vendues
-   = Ventes de marchandises - (Achats de marchandises ± Variation de stocks marchés)
+EBE locatif = Loyers bruts
+            - Charges décaissables d'exploitation
+              (copropriété non récupérable + taxe foncière + assurances + gestion + entretien + frais divers)
 ```
-- Applicable uniquement aux entreprises ayant une activité de négoce
-- Taux de marge commerciale = MC / Ventes de marchandises
-
-**Production de l'exercice**
-```
-Production = Production vendue + Production stockée + Production immobilisée
-```
-- Applicable aux entreprises industrielles et de services
-
-**Valeur Ajoutée (VA)**
-```
-VA = Marge commerciale + Production de l'exercice
-   - Consommations en provenance des tiers (achats de matières + autres achats et charges externes)
-```
-- Mesure la richesse créée par l'entreprise
-- Taux de VA = VA / CA HT (indicateur de l'intensité capitalistique)
-
-**Excédent Brut d'Exploitation (EBE)**
-```
-EBE = VA + Subventions d'exploitation
-    - Impôts, taxes et versements assimilés
-    - Charges de personnel (salaires + charges sociales)
-```
-- Principal indicateur de la performance opérationnelle, indépendant de la politique d'amortissement et de financement
-- EBE négatif = Insuffisance Brute d'Exploitation (IBE) : signal critique
+- Mesure la performance opérationnelle hors politique d'amortissement et hors financement
+- EBE locatif négatif = les charges courantes dépassent les loyers — situation critique
 
 **Résultat d'Exploitation (RE)**
 ```
-RE = EBE
-   + Reprises sur provisions et amortissements d'exploitation + Autres produits d'exploitation
-   - Dotations aux amortissements et provisions d'exploitation - Autres charges d'exploitation
+RE = EBE locatif
+   - Dotations aux amortissements des immeubles et travaux
+   - Dotations aux provisions pour loyers douteux
+   + Reprises sur provisions
 ```
+- Fréquemment négatif pour un immeuble récemment acquis : les amortissements sont élevés par rapport aux loyers
+- Un RE négatif n'est pas nécessairement alarmant si le cash-flow est positif
 
 **Résultat Courant Avant Impôt (RCAI)**
 ```
 RCAI = RE + Résultat financier
-     = RE + Produits financiers - Charges financières
+     = RE - Charges financières (intérêts) + Produits financiers
 ```
-- Un résultat financier très négatif signale un endettement coûteux
-
-**Résultat Exceptionnel**
-```
-Résultat exceptionnel = Produits exceptionnels - Charges exceptionnelles
-```
-- Un résultat exceptionnel récurrent mérite une analyse approfondie
+- Très souvent négatif en début d'investissement (amortissements élevés + intérêts élevés)
+- Peut générer un déficit foncier imputable sur le revenu global des associés (dans le cadre d'une SCI à l'IR)
 
 **Résultat Net**
 ```
-Résultat Net = RCAI + Résultat exceptionnel
-             - Participation des salariés
-             - Impôts sur les bénéfices
+Résultat Net = RCAI + Résultat exceptionnel - IS (si applicable)
 ```
 
 **Capacité d'Autofinancement (CAF) — méthode additive**
 ```
 CAF = Résultat Net
-    + Dotations aux amortissements et provisions (exploitation + financières + exceptionnelles)
-    - Reprises sur provisions
-    - Plus-values de cession nettes d'impôt (produits de cession - VNC)
+    + Dotations aux amortissements (immeubles + travaux)
+    + Dotations aux provisions nettes de reprises
+    - Plus-values de cession nettes d'impôt
+```
+- La CAF représente les ressources internes générées — elle doit couvrir a minima les remboursements en capital des emprunts
+
+**Cash-flow locatif brut (indicateur de gestion)**
+```
+Cash-flow locatif brut = Loyers bruts perçus - Charges décaissables d'exploitation
+                       = EBE locatif
 ```
 
-### 3. Présenter le tableau de synthèse des SIG
+**Cash-flow locatif net (après financement)**
+```
+Cash-flow locatif net = EBE locatif - Annuités totales d'emprunt (capital + intérêts)
+```
+- C'est l'indicateur le plus important pour l'investisseur : mesure ce que génère le bien après paiement de l'emprunt
+- Positif : le bien s'autofinance et dégage un surplus
+- Légèrement négatif : effort d'épargne mensuel nécessaire — courant en début d'investissement dans les marchés tendus
+- Fortement négatif : le bien consomme de la trésorerie de façon structurelle — à surveiller
 
-| Solde | Montant N (€) | % du CA HT | Montant N-1 (€) | Evolution |
-|-------|---------------|------------|-----------------|-----------|
-| Chiffre d'affaires HT | X | 100% | X | +/- % |
-| Marge commerciale | X | X% | X | +/- % |
-| Valeur Ajoutée | X | X% | X | +/- % |
-| EBE | X | X% | X | +/- % |
+**Taux de couverture du service de la dette (DSCR — preview)**
+```
+DSCR = EBE locatif / Annuités totales d'emprunt (capital + intérêts)
+```
+- DSCR > 1,2 : confortable — les loyers couvrent le remboursement avec une marge de 20%
+- DSCR 1,0–1,2 : tendu — peu de marge face à une vacance ou une hausse des charges
+- DSCR < 1,0 : insuffisant — les loyers ne couvrent pas les remboursements, effort de trésorerie personnel
+
+### 3. Présenter le tableau de synthèse
+
+| Solde | Montant N (€) | % des loyers bruts | Montant N-1 (€) | Evolution |
+|-------|---------------|-------------------|-----------------|-----------|
+| Loyers bruts perçus | X | 100% | X | +/- % |
+| Charges décaissables d'exploitation | X | X% | X | +/- % |
+| **EBE locatif (cash-flow brut)** | **X** | **X%** | X | **+/- %** |
+| Dotations aux amortissements | X | X% | X | +/- % |
 | Résultat d'exploitation | X | X% | X | +/- % |
-| Résultat financier | X | X% | X | +/- % |
+| Charges financières (intérêts) | X | X% | X | +/- % |
 | RCAI | X | X% | X | +/- % |
 | Résultat exceptionnel | X | X% | X | +/- % |
 | Résultat net | X | X% | X | +/- % |
-| CAF | X | X% | X | +/- % |
+| **CAF** | **X** | **X%** | X | **+/- %** |
+| Annuités totales (capital + intérêts) | X | X% | X | +/- % |
+| **Cash-flow net après financement** | **X** | **X%** | X | **+/- %** |
+| **DSCR** | **X,X** | | X,X | |
 
-### 4. Calculer les taux de marge clés
+### 4. Comparer avec les données sectorielles via data.gouv.fr
 
-| Ratio | Formule | Valeur | Appréciation |
-|-------|---------|--------|--------------|
-| Taux de marge brute | MC / CA HT | X% | |
-| Taux de VA | VA / CA HT | X% | |
-| Taux de marge EBE | EBE / CA HT | X% | Benchmark : 5-15% selon secteur |
-| Taux de marge d'exploitation | RE / CA HT | X% | |
-| Taux de marge nette | Résultat Net / CA HT | X% | |
-| Taux de CAF | CAF / CA HT | X% | |
+Si le code NAF/APE de la société est connu (68.20A, 68.20B pour location immobilière), interroger data.gouv.fr pour obtenir les ratios sectoriels de référence (Banque de France / INSEE) :
+- Rentabilité moyenne du secteur location immobilière
+- Ratio charges financières / EBE sectoriel
+- Taux d'endettement médian
 
-### 5. Comparer avec les ratios sectoriels via data.gouv.fr
+### 5. Identifier les points de vigilance spécifiques au locatif
 
-Si le secteur d'activité de l'entreprise est connu (code NAF/APE), interroger data.gouv.fr pour obtenir les ratios financiers sectoriels de référence (Banque de France / INSEE) et positionner l'entreprise par rapport à la médiane de son secteur.
-
-### 6. Identifier les points de vigilance
-
-Signaler systématiquement les anomalies suivantes si elles sont présentes :
-- EBE négatif ou en forte dégradation : l'activité opérationnelle ne génère plus de surplus
-- Charges de personnel représentant plus de 70% de la VA : niveau élevé, à contextualiser
-- Résultat financier fortement négatif : charges d'intérêts qui pèsent sur la rentabilité
-- Résultat exceptionnel significatif et récurrent : masque peut-être la performance réelle
-- Résultat net positif uniquement grâce au résultat exceptionnel : fragilité structurelle
-- CAF insuffisante pour couvrir les remboursements d'emprunts : risque de capacité de remboursement
+- **EBE locatif < 50% des loyers bruts** : charges d'exploitation anormalement élevées — analyser poste par poste
+- **Charges financières > EBE locatif** : les intérêts seuls dépassent le surplus d'exploitation — DSCR < 1, situation non soutenable sans apports extérieurs
+- **CAF < remboursements en capital** : la société ne génère pas assez de ressources internes pour rembourser son emprunt — dépendance aux loyers pour couvrir le capital remboursé
+- **Résultat net très négatif** : peut être normal (amortissements + intérêts élevés) mais génère un report à nouveau négatif cumulatif — surveiller les capitaux propres
+- **Vacance locative implicite** (loyers perçus < loyers théoriques) : à quantifier si possible
+- **Taxe foncière > 10% des loyers** : niveau élevé, à vérifier selon la localisation
+- **Dépendance à un seul locataire** : risque de concentration — à mentionner si une seule ligne de loyer est visible
 
 ## Règles importantes
 
-- Ne jamais inventer un solde si les données sources sont manquantes ou ambiguës : demander la précision
-- Bien distinguer CA HT (hors taxes) et CA TTC dans les ratios
-- Pour les entreprises avec activités mixtes (négoce + production), calculer les deux marges séparément
-- Préciser l'exercice concerné et effectuer la comparaison N / N-1 si les deux exercices sont disponibles
-- Rappeler que les SIG constituent une analyse indicative ne remplaçant pas l'avis d'un expert-comptable
+- Ne jamais inventer un solde si les données sources sont manquantes — demander la précision
+- Distinguer systématiquement les charges décaissables (impact trésorerie) des charges non-décaissables (amortissements, provisions)
+- Pour les SCI à l'IR, préciser que le résultat net affiché est avant imposition des associés — le cash-flow effectif peut être très différent de la charge fiscale réelle des associés
+- Préciser l'exercice concerné et effectuer la comparaison N / N-1 si disponible
+- Rappeler que cette analyse est indicative et ne remplace pas l'avis d'un expert-comptable ou d'un gestionnaire de patrimoine
