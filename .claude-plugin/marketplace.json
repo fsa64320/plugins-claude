@@ -16,7 +16,7 @@
       "category": "productivity",
       "source": {
         "source": "git-subdir",
-        "url": "https://github.com/fredericksales/plugin-fiscal-france.git",
+        "url": "https://github.com/fsa64320/plugin-fiscal-france.git",
         "path": "plugins/declaration-impot-france",
         "ref": "main"
       }
