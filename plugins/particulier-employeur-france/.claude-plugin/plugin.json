@@ -1,0 +1,15 @@
+{
+  "name": "particulier-employeur-france",
+  "version": "1.0.0",
+  "description": "Assistant pour les particuliers employeurs français (CESU / PAJEMPLOI) : guide d'embauche CDI, rupture conventionnelle, déclarations et cotisations mensuelles, génération automatique de documents (contrat de travail, solde de tout compte, certificat de travail).",
+  "author": {
+    "name": "Frederick Sales",
+    "email": "frederick.sales@gmail.com"
+  },
+  "mcpServers": {
+    "datagouv": {
+      "type": "http",
+      "url": "https://mcp.data.gouv.fr/mcp"
+    }
+  }
+}
