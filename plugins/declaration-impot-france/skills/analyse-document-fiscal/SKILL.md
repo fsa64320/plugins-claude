@@ -1,7 +1,7 @@
 ---
 name: analyse-document-fiscal
-description: Ce skill doit être utilisé quand l'utilisateur partage ou mentionne un document fiscal à analyser : "analyse mon IFU", "lis mon relevé fiscal SCPI", "que signifie cette case", "j'ai reçu un document de ma banque", "IFU Boursorama", "relevé Linxea", "attestation fiscale", "document Amundi", "relevé de situation". Extrait les montants, identifie les cases 2042 concernées et explique chaque ligne.
-version: 1.1.1
+description: Ce skill doit être utilisé quand l'utilisateur partage ou mentionne un document fiscal à analyser : "analyse mon IFU", "lis mon relevé fiscal SCPI", "que signifie cette case", "j'ai reçu un document de ma banque", "IFU Boursorama", "relevé Linxea", "attestation fiscale", "document Amundi", "relevé de situation", "synthèse fiscale", "fais ma déclaration". Extrait les montants, identifie les cases 2042 concernées et explique chaque ligne.
+version: 1.2.0
 allowed-tools: [Read, Glob]
 ---
 
@@ -9,58 +9,49 @@ allowed-tools: [Read, Glob]
 
 ## Objectif
 
-Extraire et expliquer les informations fiscales d'un document fourni par l'utilisateur (IFU, relevé SCPI, attestation fiscale, relevé de portefeuille, etc.) et identifier les cases à reporter dans la déclaration 2042.
+Extraire et expliquer les informations fiscales d'un ou plusieurs documents fournis par l'utilisateur (IFU, relevé SCPI, attestation fiscale, relevé de portefeuille, etc.), consolider les montants par case, et produire une synthèse actionnable avec guide de saisie.
 
 ## Processus
 
-1. **Identifier le type de document**
+1. **Identifier le type et le nombre de documents**
    - IFU (Imprimé Fiscal Unique) : émis par les banques/courtiers pour les valeurs mobilières
    - Relevé fiscal SCPI : émis par les sociétés de gestion pour les revenus fonciers et étrangers
    - Attestation fiscale assurance-vie
    - Relevé de situation PEA / PEA-PME
+   - Si plusieurs documents : consolider les montants par case avant de produire la sortie
 
 2. **Extraire les montants clés selon le type**
 
-   Pour un **IFU** :
-   - Case 2DC : dividendes d'actions françaises et européennes
+   Pour un **IFU valeurs mobilières** :
+   - Case 2DC : dividendes d'actions françaises et européennes (avec droit à abattement 40 %)
+   - Case 2TS : revenus de SCPI et autres distributions (sans abattement)
    - Case 2TR : intérêts et produits de placement à revenu fixe
-   - Case 2BH : revenus de valeurs mobilières (autres)
+   - Case 2BH : revenus déjà soumis aux prélèvements sociaux (uniquement si option 2OP)
    - Case 2CK : crédit d'impôt égal au prélèvement forfaitaire non libératoire
-   - Case 2CA : pertes nettes sur cessions de valeurs mobilières
-   - Case 2VV : plus-values nettes sur cessions de valeurs mobilières
    - Case 2AB : crédits d'impôt sur valeurs étrangères
+   - Case 2CA : pertes nettes sur cessions de valeurs mobilières
    - Case 3VG / 3VH : plus-values / moins-values sur cessions de valeurs mobilières (PFU)
 
    Pour un **relevé SCPI** :
-   - Revenus fonciers français → case 4BA (formulaire 2044)
-   - Revenus de source étrangère → formulaire 2047
-   - Quote-part de charges déductibles
-   - Prélèvements sociaux déjà effectués
+   - Revenus fonciers français → ligne 114 formulaire 2044, puis case 4BA en 2042
+   - Revenus fonciers étrangers avec crédit d'impôt → cases 4BL + 8TK en 2042
+   - Revenus exonérés pour taux effectif → case 4EA en 2042
+   - Quote-part de charges déductibles (lignes 112/113 en 2044)
+   - Plus-values immobilières SCPI → case 3VZ en 2042
+   - Plus-values mobilières SCPI → case 3VG en 2042
 
-3. **Présenter un tableau de synthèse**
+3. **Consolider les montants** si plusieurs documents pour un même foyer fiscal
 
-   | Case | Libellé | Montant | Formulaire |
-   |------|---------|---------|------------|
-   | 2DC  | Dividendes | X,XX € | 2042 |
-   | ...  | ...     | ...     | ...  |
-
-4. **Expliquer chaque ligne en langage simple**
-   - Ce que représente le revenu
-   - Pourquoi il est imposable (ou non)
-   - Le régime fiscal applicable (PFU 30% ou barème progressif)
-
-5. **Signaler les points d'attention**
-   - Revenus étrangers nécessitant le formulaire 2047
-   - Crédit d'impôt à ne pas oublier (case 2AB)
-   - Option barème progressif si potentiellement avantageuse
+4. **Produire la sortie structurée** selon le Format de réponse ci-dessous
 
 ## Règles importantes
 
 - Ne jamais inventer un montant : si une case n'est pas visible dans le document, l'inscrire `— Non concerné`, ne jamais l'omettre
-- Distinguer PFU (30%) vs barème progressif et expliquer la différence
-- Pour les SCPI étrangères, rappeler que la convention fiscale avec le pays concerné s'applique
-- Produire les **9 blocs** du Format de réponse dans l'ordre indiqué, sans exception
-- Les blocs 2044, 2047 et 2074 ne sont inclus que si le document les rend nécessaires ; sinon écrire explicitement : *« Formulaire X non applicable à ce document. »*
+- Distinguer PFU (30 %) vs barème progressif et expliquer la différence
+- Pour les SCPI étrangères : distinguer les deux mécanismes — crédit d'impôt (4BL + 8TK) et taux effectif (4EA)
+- Les revenus 4EA ne sont **pas** imposés en France mais augmentent le taux d'imposition sur les revenus français
+- Produire les **12 blocs** du Format de réponse dans l'ordre indiqué, sans exception
+- Les blocs 2044, 2047, 2074, IFI et PEA ne sont inclus que si le document les rend nécessaires ; sinon écrire : *« Non applicable à ce document. »*
 - Montants toujours formatés `X XXX,XX €` (espace milliers, virgule décimale)
 - Le bloc Synthèse fiscale estimée est omis si les données sont trop partielles pour un calcul
 - Toujours rappeler que cette analyse est indicative et ne remplace pas un expert-comptable
@@ -71,76 +62,122 @@ Produire **systématiquement** la sortie suivante, dans cet ordre et avec cette 
 
 ---
 
-### 📄 Document analysé
+### 📄 1. Documents analysés
+
+*(Si un seul document, ligne unique. Si plusieurs documents, tableau complet.)*
+
+| # | Émetteur | Titulaire | Type |
+|---|----------|-----------|------|
+| 1 | Nom de l'établissement | Prénom Nom | IFU / Relevé SCPI / Attestation AV / Relevé PEA |
+| 2 | … | … | … |
+
 | Champ | Valeur |
 |-------|--------|
-| Type | IFU / Relevé SCPI / Attestation AV / Relevé PEA / Autre |
-| Émetteur | Nom de l'établissement |
 | Année fiscale | AAAA |
-| Date d'émission | JJ/MM/AAAA (si disponible) |
-| Formulaires concernés | 2042 / 2044 / 2047 / 2074 (cocher les applicables) |
+| Formulaires concernés | 2042 ☑ / 2044 ☐ / 2047 ☐ / 2074 ☐ / 2042-IFI ☐ |
 
 ---
 
-### 📊 Formulaire 2042 — Déclaration principale
+### 📊 2. Formulaire 2042 — Revenus consolidés du foyer
+
+*(Montants consolidés tous documents confondus, y compris enfants mineurs rattachés)*
 
 | Case | Libellé | Montant | Statut |
 |------|---------|---------|--------|
-| 2DC | Dividendes d'actions françaises/européennes | 0,00 € | — Non concerné |
-| 2TR | Intérêts et produits de placement | 0,00 € | — Non concerné |
-| 2BH | Revenus de valeurs mobilières (autres) | 0,00 € | — Non concerné |
-| 2CK | Crédit d'impôt prélèvement forfaitaire | 0,00 € | — Non concerné |
+| 2DC | Dividendes d'actions (avec droit à abattement 40 %) | 0,00 € | — Non concerné |
+| 2TS | Revenus de SCPI et autres distributions (sans abattement) | 0,00 € | — Non concerné |
+| 2TR | Intérêts et produits de placement à revenu fixe | 0,00 € | — Non concerné |
+| 2BH | Revenus déjà soumis aux PS *(uniquement si option 2OP cochée)* | 0,00 € | — Non concerné |
+| 2CK | Crédit d'impôt prélèvement forfaitaire non libératoire | 0,00 € | — Non concerné |
 | 2AB | Crédits d'impôt sur valeurs étrangères | 0,00 € | — Non concerné |
 | 2CA | Pertes nettes sur cessions | 0,00 € | — Non concerné |
-| 3VG | Plus-values nettes sur cessions (PFU) | 0,00 € | — Non concerné |
+| 3VG | Plus-values nettes sur cessions de valeurs mobilières (PFU) | 0,00 € | — Non concerné |
 | 3VH | Moins-values nettes sur cessions (PFU) | 0,00 € | — Non concerné |
+| 3VZ | Plus-values immobilières SCPI (nettes, soumises aux PS) | 0,00 € | — Non concerné |
+| 4BA | Revenus fonciers nets (report depuis 2044) | 0,00 € | — Non concerné |
+| 4BL | Revenus fonciers étrangers avec crédit d'impôt (report depuis 2047) | 0,00 € | — Non concerné |
+| 4EA | Revenus étrangers exonérés pour taux effectif | 0,00 € | — Non concerné |
+| 8TK | Crédit d'impôt sur revenus étrangers (= 4BL) | 0,00 € | — Non concerné |
 
-> Toutes les cases pertinentes au type de document sont listées. Statut : `✅ À reporter` ou `— Non concerné`.
+> Statut : `✅ À reporter` ou `— Non concerné`. Ne jamais omettre une case — la laisser à `0,00 €` si non applicable.
 
----
+*(Si plusieurs documents, ajouter un sous-tableau de détail par case clé, par exemple :)*
 
-### 🏠 Formulaire 2044 — Revenus fonciers (régime réel)
+**Détail par document — case 2DC**
 
-> *(Bloc présent uniquement si le document contient des revenus fonciers en régime réel — SCPI, immobilier locatif direct. Sinon : « Formulaire 2044 non applicable à ce document. »)*
+| Document | Titulaire | 2DC |
+|----------|-----------|-----|
+| Émetteur 1 | Prénom | 0,00 € |
+| … | … | … |
+| **Total** | | **0,00 €** |
 
-| Ligne | Libellé | Montant |
-|-------|---------|---------|
-| 110 | Revenus bruts (A) | 0,00 € |
-| 112 | Frais et charges (B) | 0,00 € |
-| 113 | Intérêts d'emprunt (C) | 0,00 € |
-| 114 | Bénéfice (+) / Déficit (–) (D) | 0,00 € |
-
-Report en 2042 :
-| Case 2042 | Libellé | Montant |
-|-----------|---------|---------|
-| 4BA | Revenus fonciers nets | 0,00 € |
-| 4BC | Déficit foncier imputable | 0,00 € |
-
-> Si micro-foncier (revenus < 15 000 €) : déclarer directement case **4BE** en 2042, sans remplir 2044.
+*(Répéter pour 2CK et toute autre case consolidée depuis plusieurs sources)*
 
 ---
 
-### 🌍 Formulaire 2047 — Revenus de source étrangère
+### 🏠 3. Formulaire 2044 — Revenus fonciers SCPI (régime réel)
+
+> *(Bloc présent uniquement si le document contient des revenus fonciers en régime réel. Sinon : « Formulaire 2044 non applicable à ce document. »)*
+>
+> Chaque SCPI constitue un immeuble distinct. Arrondir chaque montant à l'euro le plus proche. Les pays dont les revenus sont exonérés pour taux effectif (ex : Belgique, Pays-Bas, Irlande, Portugal, Finlande selon conventions) **ne figurent pas dans la 2044** — ils passent directement en case **4EA**.
+
+**SCPI [Nom] — [Titulaire(s)] ([N] parts)**
+Adresse SCPI : [adresse] — Société de gestion : [nom]
+
+| Immeuble | Pays | 111 Revenus bruts | 112 Frais & charges | 113 Intérêts emprunt | 114 Bénéfice (+) / Déficit (–) |
+|----------|------|:-----------------:|:-------------------:|:--------------------:|:------------------------------:|
+| 1 | France | 0 € | 0 € | 0 € | **0 €** |
+| 2 | Allemagne | 0 € | 0 € | 0 € | **0 €** |
+| … | … | … | … | … | … |
+| **Ligne 420 — Total** | | **0 €** | **0 €** | **0 €** | **0 €** |
+
+> Report 2042 : **4BA = 0 €** · **4BL = 0 €** · **8TK = 0 €**
+
+*(Répéter un bloc par SCPI distincte)*
+
+**Récapitulatif 2044 — Total foyer**
+
+| SCPI | 111 Bruts | 112 Charges | 113 Intérêts | 114 Net (→ 4BA) | dont 4BL |
+|------|:---------:|:-----------:|:------------:|:---------------:|:--------:|
+| SCPI 1 | 0 € | 0 € | 0 € | 0 € | 0 € |
+| … | … | … | … | … | … |
+| **TOTAL** | **0 €** | **0 €** | **0 €** | **0 €** | **0 €** |
+
+> Report final 2042 : **4BA = 0 €** → **4BL = 0 €** → **8TK = 0 €**
+
+> Si micro-foncier (revenus bruts < 15 000 €) : déclarer directement case **4BE** en 2042, sans remplir 2044.
+
+---
+
+### 🌍 4. Formulaire 2047 — Revenus de source étrangère
 
 > *(Bloc présent uniquement si le document contient des revenus de source étrangère. Sinon : « Formulaire 2047 non applicable à ce document. »)*
-
-| Section | Pays | Nature du revenu | Montant brut | Retenue à la source | Crédit d'impôt FR |
-|---------|------|-----------------|-------------|--------------------|--------------------|
-| 1 | Ex : Allemagne | Dividendes | 0,00 € | 0,00 € | 0,00 € |
-| 3 | Ex : Luxembourg | Intérêts | 0,00 € | 0,00 € | 0,00 € |
-| 6 | Ex : Espagne | Revenus fonciers | 0,00 € | 0,00 € | 0,00 € |
-
-Reports en 2042 :
-| Case 2042 | Libellé | Montant |
-|-----------|---------|---------|
-| 2AB | Crédit d'impôt égal à la retenue étrangère | 0,00 € |
-| 4BA | Revenus fonciers étrangers nets (si convention taux effectif) | 0,00 € |
-
+>
 > Vérifier la convention fiscale applicable entre la France et le pays source — le traitement varie selon les conventions.
+
+**A. Revenus imposés en France avec crédit d'impôt (→ cases 4BL + 8TK) → cadre 4**
+
+| Document | Pays | 4BL / 8TK | Nature |
+|----------|------|:---------:|--------|
+| SCPI 1 | Allemagne, Espagne… | 0,00 € | Loyers étrangers (crédit d'impôt = impôt FR) |
+| … | … | … | … |
+| **Total 8TK** | | **0,00 €** | |
+
+> Case **8TK = 0,00 €** — Ce crédit d'impôt annule l'impôt français sur ces revenus étrangers.
+
+**B. Revenus exonérés servant au calcul du taux effectif (→ case 4EA) → cadre 6**
+
+| Document | Pays (exonérés taux effectif) | 4EA |
+|----------|:-----------------------------:|:---:|
+| SCPI 1 | Belgique, Pays-Bas, Irlande… | 0,00 € |
+| … | … | … |
+| **Total 4EA** | | **0,00 €** |
+
+> Case **4EA = 0,00 €** — Ces revenus ne sont pas imposés en France mais augmentent le taux d'imposition appliqué aux revenus français (taux effectif).
 
 ---
 
-### 📈 Formulaire 2074 — Plus-values mobilières (régime dérogatoire)
+### 📈 5. Formulaire 2074 — Plus-values mobilières (régime dérogatoire)
 
 > *(Bloc présent uniquement si le document mentionne des cessions hors PFU : reports de moins-values antérieures à 2018, abattements pour durée de détention, BSPCE, stock-options. Sinon : « Formulaire 2074 non applicable à ce document. »)*
 
@@ -160,45 +197,135 @@ Reports en 2042 C :
 | 3VH | Moins-value nette reportable | 0,00 € |
 | 3UA | Plus-value avec abattement renforcé | 0,00 € |
 
-> Le formulaire 2074 est obligatoire dès lors qu'une compensation entre plus et moins-values ou un abattement s'applique, même si le résultat net est nul.
+> Le formulaire 2074 est obligatoire dès lors qu'une compensation entre plus et moins-values ou un abattement s'applique, même si le résultat net est nul. Si la société de gestion indique que le 2074 n'est pas requis, reporter directement en case 3VG.
 
 ---
 
-### 💬 Explication des lignes renseignées
+### 🏛️ 6. IFI — Impôt sur la Fortune Immobilière
 
-Pour chaque case ou ligne avec un montant > 0, produire un paragraphe :
+> *(Bloc présent uniquement si le foyer détient de l'immobilier ou des SCPI. Si patrimoine immobilier net < 1 300 000 €, écrire : « IFI non applicable — seuil de 1 300 000 € non atteint. »)*
 
-**Case 2DC — Dividendes d'actions**
-Revenus versés par des sociétés françaises ou européennes cotées. Soumis au PFU de 30 % (12,8 % IR + 17,2 % PS) ou, sur option globale via la case 2OP, au barème progressif avec abattement de 40 %.
+Valeur des parts SCPI à déclarer au 01/01/AAAA+1 (= 31/12/AAAA) :
 
-*(Répéter pour chaque case ou ligne concernée)*
+| SCPI | Titulaire | Nb parts | Valeur IFI / part | Valeur IFI totale |
+|------|-----------|:--------:|:-----------------:|:-----------------:|
+| SCPI 1 | Prénom | N | 0,00 € | **0,00 €** |
+| … | … | … | … | … |
+| **Total foyer** | | | | **0,00 €** |
 
----
-
-### ⚠️ Points d'attention
-
-- [ ] Revenus de source étrangère détectés → compléter le formulaire **2047**
-- [ ] Crédit d'impôt étranger (case **2AB**) → ne pas omettre, il réduit l'impôt dû
-- [ ] Revenus fonciers en régime réel → remplir le formulaire **2044** avant la 2042
-- [ ] Plus-values avec abattement ou report de moins-values → formulaire **2074** requis
-- [ ] Option barème progressif (case **2OP**) → avantageuse si TMI < 30 %
-- [ ] Prélèvements sociaux déjà prélevés à la source → ne pas les redéclarer
-
-*(Lister uniquement les points réellement applicables au document analysé)*
+> Si le patrimoine immobilier net total dépasse **1 300 000 €**, remplir le formulaire **2042-IFI**. Ajouter la valeur de l'immobilier direct et déduire les dettes immobilières en cours.
 
 ---
 
-### 🧮 Synthèse fiscale estimée
+### 💳 7. PEA — Plan d'Épargne en Actions
 
-| Régime | Base imposable | Impôt estimé |
-|--------|---------------|-------------|
-| PFU 30 % (par défaut) | X XXX,XX € | XXX,XX € |
-| Barème progressif (option 2OP) | X XXX,XX € | À calculer selon TMI |
+> *(Bloc présent uniquement si le foyer détient un PEA. Sinon : « PEA non applicable à ce document. »)*
 
-> Estimation indicative sur la base des éléments du document uniquement. Le calcul exact dépend de l'ensemble de la déclaration du foyer fiscal.
+| Titulaire | Établissement | Référence | Date ouverture | Événement fiscal AAAA |
+|-----------|--------------|-----------|----------------|----------------------|
+| Prénom | Établissement | N° compte | JJ/MM/AAAA | Aucun / Retrait partiel / Clôture |
+
+> Aucun montant à reporter si aucun retrait en AAAA. Les dividendes et plus-values restent dans l'enveloppe PEA et ne sont imposables qu'en cas de retrait (exonération IR après 5 ans d'ouverture).
 
 ---
 
-### ⚖️ Mise en garde
+### 📋 8. Récapitulatif consolidé — Cases à reporter
 
-*Cette analyse est produite à titre informatif et pédagogique à partir des éléments fournis. Elle ne constitue pas un conseil fiscal et ne remplace pas l'intervention d'un expert-comptable ou d'un conseiller fiscal agréé. En cas de doute, consultez un professionnel ou le service des impôts.*
+**Formulaire 2042**
+
+| Case | Montant à reporter | Note |
+|------|--------------------|------|
+| 2DC | **0,00 €** | |
+| 2TS | **0,00 €** | |
+| 2TR | **0,00 €** | |
+| 2CK | **0,00 €** | Crédit d'impôt direct |
+| 2BH | **0,00 €** | Uniquement si option 2OP cochée |
+| 3VG | **0,00 €** | |
+| 3VZ | **0,00 €** | |
+| 4BA | **0,00 €** | Report depuis 2044 |
+| 4BL | **0,00 €** | Revenus étrangers avec crédit d'impôt |
+| 4EA | **0,00 €** | Revenus exonérés taux effectif |
+| 8TK | **0,00 €** | Crédit d'impôt revenus étrangers (= 4BL) |
+
+---
+
+### 🪜 9. Notice explicative — Comment saisir votre déclaration
+
+*(Produire un guide pas à pas adapté aux documents analysés. Structure type :)*
+
+**Étape 1 — Connexion à impots.gouv.fr**
+1. Accédez à [impots.gouv.fr](https://www.impots.gouv.fr) > **Mon espace particulier** > **Déclarer mes revenus**
+2. Vérifiez les informations pré-remplies (état civil, adresse, situation familiale, rattachement des enfants mineurs)
+
+**Étape 2 — Revenus de capitaux mobiliers (formulaire 2042, section 2)**
+Pour chaque case avec un montant > 0, expliquer en une phrase ce qu'elle contient et comment la saisir.
+
+*Exemple :*
+**Case 2DC — Dividendes (X XXX,XX €)**
+[Expliquer les sources, l'option PFU vs barème et l'impact de l'abattement 40 %]
+
+**Case 2CK — Crédit d'impôt prélèvement forfaitaire (X XXX,XX €)**
+[Rappeler que ce montant vient en déduction de l'impôt final — ne pas l'oublier]
+
+**Étape 3 — Revenus fonciers SCPI (formulaire 2044 puis 2042)**
+*(Si applicable)* Expliquer s'il faut remplir d'abord la 2044 ou reporter directement en 4BA.
+
+**Étape 4 — Revenus de source étrangère (formulaire 2047)**
+*(Si applicable)* Expliquer les deux mécanismes : crédit d'impôt (4BL + 8TK) et taux effectif (4EA).
+
+**Étape 5 — Plus-values immobilières SCPI (case 3VZ)**
+*(Si applicable)* Préciser si les prélèvements sociaux ont déjà été prélevés à la source.
+
+**Étape 6 — Option barème progressif (case 2OP)**
+Analyser si l'option est avantageuse en fonction du TMI estimé du foyer.
+- TMI < 12,8 % → barème progressif potentiellement plus favorable
+- TMI ≥ 30 % → PFU (30 %) généralement plus avantageux
+- L'option est globale et irrévocable pour l'année
+
+**Étape 7 — Vérifications finales avant validation**
+- [ ] Montants pré-remplis cohérents avec les IFU
+- [ ] Case 2CK renseignée (crédit d'impôt direct)
+- [ ] Case 8TK renseignée si revenus étrangers SCPI (rarement pré-remplie)
+- [ ] Case 4EA renseignée si revenus exonérés taux effectif
+- [ ] Enfants mineurs correctement rattachés au foyer
+- [ ] Coordonnées bancaires à jour pour remboursement éventuel
+
+---
+
+### ⚠️ 10. Points d'attention spécifiques
+
+*(Lister uniquement les points réellement applicables aux documents analysés)*
+
+- [ ] Case **8TK** rarement pré-remplie automatiquement → saisie manuelle via formulaire 2047
+- [ ] Case **4EA** non pré-remplie → à saisir manuellement
+- [ ] Revenus de source étrangère → vérifier que tous les pays figurent dans le formulaire 2047
+- [ ] Prélèvements sociaux déjà prélevés à la source sur 3VZ → ne pas les redéclarer
+- [ ] Formulaire **2074** non requis si la société de gestion confirme le report direct en 3VG
+- [ ] Option **2OP** : simuler les deux options sur impots.gouv.fr avant de valider
+- [ ] **IFI** : ajouter les valeurs PEA et immobilier direct si seuil de 1 300 000 € potentiellement atteint
+- [ ] PEA : confirmer l'absence de retrait pour éviter une imposition non anticipée
+
+---
+
+### 🧮 11. Estimation fiscale indicative
+
+*(Omettre si les données sont insuffisantes pour estimer)*
+
+| Composante | Base | Régime PFU (défaut) | Régime barème (option 2OP) |
+|------------|------|---------------------|---------------------------|
+| Dividendes 2DC | 0,00 € | 30 % → 0,00 € | Abattement 40 % → base 0,00 € → TMI |
+| Distributions 2TS | 0,00 € | 30 % → 0,00 € | TMI sans abattement |
+| Intérêts 2TR | 0,00 € | 30 % → 0,00 € | TMI sans abattement |
+| Plus-values 3VG | 0,00 € | 30 % → 0,00 € | TMI |
+| Revenus fonciers 4BA | 0,00 € | Barème progressif | Barème progressif |
+| Revenus étrangers 4BL | 0,00 € | Crédit d'impôt 8TK → annulation | Crédit d'impôt 8TK → annulation |
+| **Crédit d'impôt 2CK** | | **– 0,00 €** | **– 0,00 €** |
+| **Crédit d'impôt 8TK** | | **– 0,00 €** | **– 0,00 €** |
+
+> Estimation indicative. Le calcul exact dépend de l'ensemble des revenus du foyer (salaires, pensions, autres revenus), du quotient familial et des charges déductibles éventuelles.
+
+---
+
+### ⚖️ 12. Mise en garde
+
+*Cette analyse est produite à titre informatif et pédagogique à partir des éléments fournis. Elle ne constitue pas un conseil fiscal et ne remplace pas l'intervention d'un expert-comptable ou d'un conseiller fiscal agréé. En cas de doute, consultez un professionnel ou le service des impôts (numéro : 0809 401 401).*
