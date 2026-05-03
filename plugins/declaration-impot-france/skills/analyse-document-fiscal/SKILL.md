@@ -1,7 +1,7 @@
 ---
 name: analyse-document-fiscal
 description: Ce skill doit être utilisé quand l'utilisateur partage ou mentionne un document fiscal à analyser : "analyse mon IFU", "lis mon relevé fiscal SCPI", "que signifie cette case", "j'ai reçu un document de ma banque", "IFU Boursorama", "relevé Linxea", "attestation fiscale", "document Amundi", "relevé de situation". Extrait les montants, identifie les cases 2042 concernées et explique chaque ligne.
-version: 1.1.0
+version: 1.1.1
 allowed-tools: [Read, Glob]
 ---
 
@@ -105,10 +105,10 @@ Produire **systématiquement** la sortie suivante, dans cet ordre et avec cette 
 
 | Ligne | Libellé | Montant |
 |-------|---------|---------|
-| 110 | Loyers encaissés | 0,00 € |
-| 221 | Intérêts d'emprunt | 0,00 € |
-| 229 | Autres charges déductibles | 0,00 € |
-| 420 | Revenu foncier net (ou déficit) | 0,00 € |
+| 110 | Revenus bruts (A) | 0,00 € |
+| 112 | Frais et charges (B) | 0,00 € |
+| 113 | Intérêts d'emprunt (C) | 0,00 € |
+| 114 | Bénéfice (+) / Déficit (–) (D) | 0,00 € |
 
 Report en 2042 :
 | Case 2042 | Libellé | Montant |
