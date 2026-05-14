@@ -62,6 +62,20 @@
         "path": "plugins/architecture-agent-teams",
         "ref": "main"
       }
+    },
+    {
+      "name": "gestion-senior-famille-france",
+      "description": "Assistant pour les familles gérant un proche senior en EHPAD dans un contexte conflictuel : délégation administrative (procuration, habilitation, tutelle), finances et aides (APA, APL, déductions fiscales), succession anticipée et conflictuelle, médiation et communication familiale.",
+      "author": {
+        "name": "Frederick Sales"
+      },
+      "category": "productivity",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/fsa64320/plugins-claude.git",
+        "path": "plugins/gestion-senior-famille-france",
+        "ref": "main"
+      }
     }
   ]
 }

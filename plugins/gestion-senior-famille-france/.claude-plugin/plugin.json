@@ -1,0 +1,15 @@
+{
+  "name": "gestion-senior-famille-france",
+  "version": "1.0.0",
+  "description": "Assistant pour la gestion d'un proche senior en EHPAD et des conflits familiaux : délégation administrative, finances et aides, succession anticipée, médiation et communication.",
+  "author": {
+    "name": "Frederick Sales",
+    "email": "frederick.sales@gmail.com"
+  },
+  "mcpServers": {
+    "datagouv": {
+      "type": "http",
+      "url": "https://mcp.data.gouv.fr/mcp"
+    }
+  }
+}
