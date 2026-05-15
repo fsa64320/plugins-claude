@@ -2,7 +2,7 @@
 name: rupture-conventionnelle
 description: Ce skill doit être utilisé quand le particulier employeur veut "faire une rupture conventionnelle", "se séparer d'un salarié à l'amiable", "mettre fin au contrat d'un commun accord", "remplir le CERFA 14598", "homologation rupture conventionnelle", "délai de rétractation", "indemnité de rupture", "documents de fin de contrat", "solde de tout compte", "certificat de travail", "attestation France Travail".
 version: 1.0.0
-allowed-tools: [Read, Glob]
+allowed-tools: "Read Glob"
 ---
 
 # Rupture conventionnelle — Particulier employeur (CDI)

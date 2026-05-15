@@ -2,7 +2,7 @@
 name: analyse-document-fiscal
 description: Ce skill doit être utilisé quand l'utilisateur partage ou mentionne un document fiscal à analyser : "analyse mon IFU", "lis mon relevé fiscal SCPI", "que signifie cette case", "j'ai reçu un document de ma banque", "IFU Boursorama", "relevé Linxea", "attestation fiscale", "document Amundi", "relevé de situation", "synthèse fiscale", "fais ma déclaration". Extrait les montants, identifie les cases 2042 concernées et explique chaque ligne.
 version: 1.2.0
-allowed-tools: [Read, Glob]
+allowed-tools: "Read Glob"
 ---
 
 # Analyse de document fiscal

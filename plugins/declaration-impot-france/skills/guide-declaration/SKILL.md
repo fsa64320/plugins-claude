@@ -2,7 +2,7 @@
 name: guide-declaration
 description: Ce skill doit être utilisé quand l'utilisateur demande à "remplir ma déclaration d'impôt", "faire ma déclaration", "comment déclarer mes revenus", "guide déclaration 2042", "aide pour ma déclaration", "quelles cases remplir", "déclaration en ligne impots.gouv.fr", "je dois déclarer mes dividendes", "comment reporter mon IFU", "formulaire 2044", "formulaire 2047", "déclaration revenus fonciers".
 version: 1.0.0
-allowed-tools: [Read, Glob]
+allowed-tools: "Read Glob"
 ---
 
 # Guide déclaration d'impôts — France

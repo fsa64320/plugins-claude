@@ -2,7 +2,7 @@
 name: architecture-team
 description: Activez ce skill quand l'utilisateur pose une problématique d'architecture logicielle ou système, demande de "concevoir", "architecturer", "évaluer", "valider" ou "revoir" une solution technique. Exemples déclencheurs : "Conçois une architecture microservices", "Comment sécuriser mon API ?", "Quelle architecture Azure pour mon SaaS ?", "architecture agent teams", "crée une équipe architecture", "expert architecture", "revue d'architecture", "design de système", "choix technologique Azure/AWS", "threat model", "zero trust", "résilience", "scalabilité", "plan de migration cloud", "architecture event-driven", "comment gérer l'authentification", "mise en place d'un système d'emailing".
 version: 1.0.0
-allowed-tools: [Agent, Read, Glob, Bash, Write, Edit]
+allowed-tools: "Agent Read Glob Bash Write Edit"
 ---
 
 # Architecture Agent Teams

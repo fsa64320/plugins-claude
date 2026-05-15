@@ -2,7 +2,7 @@
 name: delegation-administrative
 description: "Ce skill doit être utilisé quand l'utilisateur demande comment 'gérer les affaires de mon père', 'faire une procuration pour ma mère', 'habilitation familiale', 'tutelle curatelle', 'mon proche ne peut plus signer', 'je dois gérer le compte bancaire de ma mère', 'qui peut décider pour une personne âgée', 'comment représenter légalement un parent', 'mandat de protection future', 'sauvegarde de justice', 'demande de tutelle au juge', 'différence tutelle curatelle', 'procuration notariale', 'CERFA tutelle', 'juge des contentieux de la protection', 'tribunal judiciaire tutelle', 'mesure de protection juridique'."
 version: 1.0.0
-allowed-tools: [Read]
+allowed-tools: "Read"
 ---
 
 # Délégation administrative — Gestion d'un proche senior en France

@@ -2,7 +2,7 @@
 name: declarations-cotisations
 description: Ce skill doit être utilisé quand le particulier employeur veut "faire sa déclaration mensuelle", "déclarer le salaire sur CESU", "déclarer sur PAJEMPLOI", "calculer les cotisations URSSAF", "calculer le salaire brut en net", "connaître le taux de cotisations", "payer l'URSSAF", "calendrier des échéances URSSAF", "date limite déclaration CESU", "cotisations sociales employé à domicile", "bulletins de paie CESU".
 version: 1.0.0
-allowed-tools: [Read, Glob]
+allowed-tools: "Read Glob"
 ---
 
 # Déclarations mensuelles et cotisations — Particulier employeur (CESU / PAJEMPLOI)

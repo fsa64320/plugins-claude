@@ -2,7 +2,7 @@
 name: finances-ehpad-patrimoine
 description: "Ce skill doit être utilisé quand l'utilisateur demande 'comment payer l'EHPAD', 'tarif maison de retraite', 'APA allocation personnalisée autonomie', 'aide sociale à l'hébergement', 'APL en EHPAD', 'reste à charge EHPAD', 'déduction impôt frais dépendance', 'réduction fiscale parent en maison de retraite', 'vendre la maison de mes parents pour payer l'EHPAD', 'gérer le patrimoine de ma mère en EHPAD', 'assurance vie parent âgé', 'obligation alimentaire enfants EHPAD', 'récupération sur succession aide sociale', 'GIR dépendance', 'section hébergement soins tarification EHPAD', 'financement maison de retraite', 'aides financières personne âgée'."
 version: 1.0.0
-allowed-tools: [Read]
+allowed-tools: "Read"
 ---
 
 # Finances et patrimoine — Gestion d'un proche en EHPAD

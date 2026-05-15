@@ -1,0 +1,83 @@
+{
+  "name": "plugins-claude",
+  "metadata": {
+    "description": "Marketplace personnel de plugins Claude Code — Frederick Sales.",
+    "version": "1.0.0"
+  },
+  "owner": {
+    "name": "Frederick Sales",
+    "email": "frederick.sales@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "declaration-impot-france",
+      "description": "Assistant fiscal complet pour les contribuables français. Analyse les documents fiscaux (IFU, relevés SCPI, attestations), guide la déclaration 2042/2044/2047, optimise la fiscalité et répond aux questions fiscales.",
+      "version": "1.2.0",
+      "source": "plugins/declaration-impot-france",
+      "skills": [
+        "plugins/declaration-impot-france/skills/analyse-document-fiscal/SKILL.md",
+        "plugins/declaration-impot-france/skills/expert-fiscal-qa/SKILL.md",
+        "plugins/declaration-impot-france/skills/guide-declaration/SKILL.md",
+        "plugins/declaration-impot-france/skills/optimisation-fiscale/SKILL.md"
+      ],
+      "mcpServers": "plugins/declaration-impot-france/.mcp.json"
+    },
+    {
+      "name": "immobilier-locatif-france",
+      "description": "Assistant d'analyse financière pour les sociétés de gestion immobilière locative françaises (SCI, foncières, SARL de famille). Analyse le bilan (LTV, FRNG, structure d'endettement), le compte de résultat (loyers, EBE locatif, cash-flow net) et les ratios spécialisés (DSCR, rendement brut/net, taux de vacance, effet de levier immobilier).",
+      "version": "2.5.0",
+      "source": "plugins/immobilier-locatif-france",
+      "skills": [
+        "plugins/immobilier-locatif-france/skills/analyse-bilan/SKILL.md",
+        "plugins/immobilier-locatif-france/skills/analyse-compte-resultat/SKILL.md",
+        "plugins/immobilier-locatif-france/skills/ratios-financiers/SKILL.md"
+      ],
+      "mcpServers": "plugins/immobilier-locatif-france/.mcp.json"
+    },
+    {
+      "name": "particulier-employeur-france",
+      "description": "Assistant pour les particuliers employeurs français (CESU / PAJEMPLOI) : guide d'embauche CDI, rupture conventionnelle, déclarations et cotisations mensuelles, génération automatique de documents (contrat de travail, solde de tout compte, certificat de travail).",
+      "version": "1.0.0",
+      "source": "plugins/particulier-employeur-france",
+      "skills": [
+        "plugins/particulier-employeur-france/skills/declarations-cotisations/SKILL.md",
+        "plugins/particulier-employeur-france/skills/generation-documents/SKILL.md",
+        "plugins/particulier-employeur-france/skills/guide-embauche-cesu/SKILL.md",
+        "plugins/particulier-employeur-france/skills/rupture-conventionnelle/SKILL.md"
+      ],
+      "mcpServers": "plugins/particulier-employeur-france/.mcp.json"
+    },
+    {
+      "name": "architecture-agent-teams",
+      "description": "Équipe d'agents spécialisés pour résoudre des problématiques d'architecture logicielle et système : cybersécurité, architecte solution, Azure, AWS, avec des experts à la demande (authentification, emailing, base de données, DevOps, etc.).",
+      "version": "1.0.0",
+      "source": "plugins/architecture-agent-teams",
+      "skills": [
+        "plugins/architecture-agent-teams/skills/architecture-team/SKILL.md"
+      ],
+      "keywords": [
+        "architecture",
+        "agent-teams",
+        "multi-agent",
+        "cybersecurite",
+        "azure",
+        "aws",
+        "solution-architect",
+        "cloud"
+      ]
+    },
+    {
+      "name": "gestion-senior-famille-france",
+      "description": "Assistant pour la gestion d'un proche senior en EHPAD et des conflits familiaux : délégation administrative, finances et aides, succession anticipée, médiation et communication.",
+      "version": "1.0.0",
+      "source": "plugins/gestion-senior-famille-france",
+      "skills": [
+        "plugins/gestion-senior-famille-france/skills/delegation-administrative/SKILL.md",
+        "plugins/gestion-senior-famille-france/skills/finances-ehpad-patrimoine/SKILL.md",
+        "plugins/gestion-senior-famille-france/skills/mediation-communication-famille/SKILL.md",
+        "plugins/gestion-senior-famille-france/skills/succession-senior-conflit/SKILL.md"
+      ],
+      "mcpServers": "plugins/gestion-senior-famille-france/.mcp.json"
+    }
+  ]
+}

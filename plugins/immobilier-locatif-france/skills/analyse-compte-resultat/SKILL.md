@@ -2,7 +2,7 @@
 name: analyse-compte-resultat
 description: Ce skill doit être utilisé quand l'utilisateur partage un compte de résultat d'une société immobilière locative ou pose des questions sur les revenus et charges d'une SCI, foncière, SARL de famille ou société de gestion locative : "loyers", "revenus locatifs", "charges d'exploitation", "intérêts d'emprunt", "taxe foncière", "amortissements", "résultat net", "cash-flow locatif", "cash-flow net", "capacité d'autofinancement", "CAF", "rendement", "résultat d'exploitation", "charges financières", "remboursement d'emprunt", "annuités", "résultat foncier".
 version: 2.0.0
-allowed-tools: [Read, Glob]
+allowed-tools: "Read Glob"
 ---
 
 # Analyse du compte de résultat d'une société de gestion immobilière locative

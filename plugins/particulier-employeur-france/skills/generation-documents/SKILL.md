@@ -2,7 +2,7 @@
 name: generation-documents
 description: Ce skill doit être utilisé quand le particulier employeur veut "générer un contrat de travail", "créer un contrat CDI en PDF", "remplir le formulaire de rupture conventionnelle", "générer les documents de fin de contrat", "créer le solde de tout compte", "générer le certificat de travail", "pré-remplir le CERFA 14598", "utiliser les scripts de génération", "créer des documents PDF".
 version: 1.0.0
-allowed-tools: [Read, Glob, Bash]
+allowed-tools: "Read Glob Bash"
 ---
 
 # Génération automatique de documents — Particulier employeur

@@ -2,7 +2,7 @@
 name: succession-senior-conflit
 description: "Ce skill doit être utilisé quand l'utilisateur demande 'comment préparer la succession de ma mère', 'partage de l'héritage', 'testament de mon père', 'réserve héréditaire', 'quotité disponible', 'donation à un enfant', 'donation-partage', 'conflit entre frères et sœurs héritage', 'indivision familiale', 'on ne s'entend pas sur la succession', 'notaire bloque la succession', 'héritier refuse de signer', 'action en partage judiciaire', 'licitation', 'droits de succession', 'abattement succession', 'abattement donation 100000 euros', 'rapport à succession', 'recel successoral', 'mon frère a été avantagé par mes parents', 'testament nul', 'contester un testament', 'droit de retour légal', 'représentation successorale'."
 version: 1.0.0
-allowed-tools: [Read]
+allowed-tools: "Read"
 ---
 
 # Succession senior — Anticipation et gestion de conflits familiaux

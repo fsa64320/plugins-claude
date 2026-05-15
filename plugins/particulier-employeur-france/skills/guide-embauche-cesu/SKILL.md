@@ -2,7 +2,7 @@
 name: guide-embauche-cesu
 description: Ce skill doit être utilisé quand le particulier employeur veut "embaucher quelqu'un", "engager un salarié à domicile", "prendre une aide ménagère", "recruter une garde d'enfant", "engager un jardinier", "créer un contrat de travail CDI", "déclarer un salarié sur CESU", "déclarer sur PAJEMPLOI", "connaître les démarches d'embauche", "période d'essai salarié maison", "documents à remettre au salarié".
 version: 1.0.0
-allowed-tools: [Read, Glob]
+allowed-tools: "Read Glob"
 ---
 
 # Guide d'embauche CDI — Particulier employeur (CESU / PAJEMPLOI)

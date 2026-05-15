@@ -2,7 +2,7 @@
 name: mediation-communication-famille
 description: "Ce skill doit être utilisé quand l'utilisateur demande 'comment parler à mon frère de la succession', 'rédiger une lettre à l'EHPAD', 'signaler un problème à la maison de retraite', 'ma sœur ne répond plus', 'conflit entre héritiers comment en sortir', 'réunion de famille difficile', 'médiation familiale', 'comment aborder le sujet de l'héritage', 'écrire à un héritier réfractaire', 'lettre au notaire', 'mon frère bloque la succession', 'comment dire à ma famille que je veux vendre la maison', 'communication non-violente famille', 'maltraitance EHPAD signalement', 'se plaindre de l'EHPAD', 'contester une décision médicale', 'désaccord sur les soins de ma mère', 'ma famille ne se parle plus à cause de l'héritage', 'préparer une conversation difficile avec un proche'."
 version: 1.0.0
-allowed-tools: [Read]
+allowed-tools: "Read"
 ---
 
 # Médiation et communication — Famille en situation conflictuelle

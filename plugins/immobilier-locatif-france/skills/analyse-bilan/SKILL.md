@@ -2,7 +2,7 @@
 name: analyse-bilan
 description: Ce skill doit être utilisé quand l'utilisateur partage un bilan comptable d'une société immobilière ou pose des questions sur la structure bilancielle d'une SCI, foncière, SARL de famille ou société de gestion locative : "analyse mon bilan", "actif immobilisé", "immeubles de placement", "emprunts bancaires", "dépôts de garantie", "fonds propres", "capitaux permanents", "LTV", "loan-to-value", "endettement immobilier", "BFR", "fonds de roulement", "FRNG", "trésorerie nette", "équilibre financier", "SCI", "foncière", "patrimoine immobilier locatif".
 version: 2.0.0
-allowed-tools: [Read, Glob]
+allowed-tools: "Read Glob"
 ---
 
 # Analyse du bilan d'une société de gestion immobilière locative

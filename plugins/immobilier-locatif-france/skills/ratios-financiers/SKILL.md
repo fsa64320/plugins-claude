@@ -2,7 +2,7 @@
 name: ratios-financiers
 description: Ce skill doit être utilisé quand l'utilisateur demande des ratios financiers pour une société immobilière locative ou pose des questions sur la rentabilité et la santé financière d'une SCI, foncière, SARL de famille : "LTV", "loan-to-value", "DSCR", "debt service coverage ratio", "rendement locatif", "rendement brut", "rendement net", "taux de vacance", "effet de levier immobilier", "levier financier", "taux d'endettement", "autonomie financière", "capacité de remboursement", "ratios immobiliers", "solvabilité", "rentabilité immobilière".
 version: 2.0.0
-allowed-tools: [Read, Glob]
+allowed-tools: "Read Glob"
 ---
 
 # Ratios financiers d'une société de gestion immobilière locative
