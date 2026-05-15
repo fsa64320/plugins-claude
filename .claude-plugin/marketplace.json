@@ -1,5 +1,4 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "plugins-claude",
   "description": "Marketplace personnel de plugins Claude Code — Frederick Sales.",
   "owner": {
