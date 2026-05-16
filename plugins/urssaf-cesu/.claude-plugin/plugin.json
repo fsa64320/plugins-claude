@@ -1,0 +1,9 @@
+{
+  "name": "urssaf-cesu",
+  "version": "1.0.0",
+  "description": "Récupère les données de salaire et cotisations depuis le portail CESU URSSAF (cesu.urssaf.fr) via browser automation Playwright. Produit un tableau Markdown exploitable par d'autres skills.",
+  "author": {
+    "name": "Frederick Sales",
+    "email": "frederick.sales@gmail.com"
+  }
+}
