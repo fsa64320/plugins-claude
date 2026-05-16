@@ -1,15 +1,30 @@
 #!/usr/bin/env python3
 """
-Scraper CESU URSSAF — cesu.urssaf.fr
-Récupère les données de salaire et cotisations pour tous les employés.
+Extracteur CESU URSSAF — via replay de requêtes API
+
+Deux modes d'utilisation :
+  1. --curl "curl 'https://...' -H ..."   → replay une commande curl copiée depuis DevTools
+  2. --cookie "JSESSIONID=..." --url "..." → appel direct avec cookie
 
 Usage:
-    python3 scrape_cesu.py --annee 2025 --mois-debut 1 --mois-fin 12
+    python3 scrape_cesu.py --curl "$(pbpaste)"
+    python3 scrape_cesu.py --cookie "JSESSIONID=abc123" --url "https://www.cesu.urssaf.fr/..."
+    python3 scrape_cesu.py --fichier reponse.json
 """
 
 import argparse
+import json
+import re
 import sys
 from datetime import datetime
+
+try:
+    import httpx
+except ImportError:
+    print("Erreur : httpx n'est pas installé.", file=sys.stderr)
+    print("Installez-le avec : pip3 install httpx", file=sys.stderr)
+    sys.exit(1)
+
 
 MOIS_FR = {
     1: "Janvier", 2: "Février", 3: "Mars", 4: "Avril",
@@ -17,250 +32,270 @@ MOIS_FR = {
     9: "Septembre", 10: "Octobre", 11: "Novembre", 12: "Décembre",
 }
 
-CESU_URL = "https://www.cesu.urssaf.fr/cesuwebsite/web/index.html"
+
+# --- Parsing d'une commande curl ---
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Scraper CESU URSSAF")
-    parser.add_argument("--annee", type=int, default=datetime.now().year, help="Année fiscale")
-    parser.add_argument("--mois-debut", type=int, default=1, help="Mois de début (1-12)")
-    parser.add_argument("--mois-fin", type=int, default=12, help="Mois de fin (1-12)")
-    return parser.parse_args()
+def parse_curl(curl_cmd: str) -> dict:
+    """
+    Parse une commande curl copiée depuis Chrome/Firefox DevTools.
+    Retourne un dict {url, method, headers, cookies, data}.
+    """
+    result = {"url": "", "method": "GET", "headers": {}, "cookies": {}, "data": None}
+
+    # Extraire l'URL (entre quotes simples ou doubles, ou sans quotes)
+    url_match = re.search(r"curl\s+['\"]?(https?://[^\s'\"]+)['\"]?", curl_cmd)
+    if url_match:
+        result["url"] = url_match.group(1)
+
+    # Extraire les headers (-H 'Key: Value' ou --header 'Key: Value')
+    headers = re.findall(r"(?:-H|--header)\s+['\"]([^'\"]+)['\"]", curl_cmd)
+    for h in headers:
+        if ":" in h:
+            key, val = h.split(":", 1)
+            key = key.strip()
+            val = val.strip()
+            if key.lower() == "cookie":
+                # Parser les cookies
+                for cookie_pair in val.split(";"):
+                    if "=" in cookie_pair:
+                        ck, cv = cookie_pair.strip().split("=", 1)
+                        result["cookies"][ck.strip()] = cv.strip()
+            else:
+                result["headers"][key] = val
+
+    # Extraire --cookie ou -b
+    cookie_match = re.search(r"(?:-b|--cookie)\s+['\"]([^'\"]+)['\"]", curl_cmd)
+    if cookie_match:
+        for cookie_pair in cookie_match.group(1).split(";"):
+            if "=" in cookie_pair:
+                ck, cv = cookie_pair.strip().split("=", 1)
+                result["cookies"][ck.strip()] = cv.strip()
+
+    # Extraire les données POST (-d ou --data)
+    data_match = re.search(r"(?:-d|--data|--data-raw)\s+['\"]([^'\"]*)['\"]", curl_cmd)
+    if data_match:
+        result["data"] = data_match.group(1)
+        result["method"] = "POST"
+
+    # Extraire la méthode (-X)
+    method_match = re.search(r"-X\s+(\w+)", curl_cmd)
+    if method_match:
+        result["method"] = method_match.group(1).upper()
+
+    return result
 
 
-def attendre_connexion(page):
-    """Ouvre le portail et attend que l'utilisateur se connecte."""
-    print(f"\n{'='*60}")
-    print("  URSSAF CESU — Connexion manuelle requise")
-    print(f"{'='*60}")
-    print(f"\n  Le navigateur Chromium s'est ouvert sur :")
-    print(f"  {CESU_URL}")
-    print()
-    print("  1. Connectez-vous avec vos identifiants URSSAF")
-    print("  2. Attendez d'être sur le tableau de bord principal")
-    print("  3. Revenez ici et appuyez sur ENTRÉE")
-    print()
+# --- Requête HTTP ---
+
+
+def executer_requete(parsed: dict) -> dict:
+    """Exécute la requête et retourne le JSON de réponse."""
+    if not parsed["url"]:
+        print("Erreur : aucune URL trouvée dans la commande curl.", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"  Appel : {parsed['method']} {parsed['url'][:80]}...", file=sys.stderr)
+
+    with httpx.Client(follow_redirects=True, timeout=30.0) as client:
+        response = client.request(
+            method=parsed["method"],
+            url=parsed["url"],
+            headers=parsed["headers"],
+            cookies=parsed["cookies"],
+            content=parsed["data"],
+        )
+
+    if response.status_code != 200:
+        print(f"  Erreur HTTP {response.status_code}", file=sys.stderr)
+        print(f"  Corps : {response.text[:500]}", file=sys.stderr)
+        sys.exit(1)
 
     try:
-        input("  Appuyez sur ENTRÉE une fois connecté... ")
-    except EOFError:
-        print("\n  [Mode non-interactif détecté — attente 60s pour connexion manuelle]")
-        page.wait_for_timeout(60_000)
+        return response.json()
+    except json.JSONDecodeError:
+        # Peut-être du HTML — afficher un aperçu
+        print("  Réponse non-JSON reçue. Aperçu :", file=sys.stderr)
+        print(f"  {response.text[:300]}", file=sys.stderr)
+        sys.exit(1)
 
-    print("\n  Connexion confirmée. Extraction des données en cours...\n")
+
+# --- Extraction des données ---
 
 
-def extraire_declarations(page, annee, mois_debut, mois_fin):
+def extraire_declarations(data) -> list:
     """
-    Navigue sur le portail CESU et extrait les déclarations pour la période.
-    Retourne une liste de dicts : {employe, mois, annee, brut, net, cotis_pat, cotis_sal}
+    Extrait les données de déclaration depuis la réponse JSON.
+    S'adapte à plusieurs structures possibles de l'API CESU.
     """
     resultats = []
 
-    # Sélecteurs CSS cibles sur cesu.urssaf.fr
-    # Ces sélecteurs ont été identifiés sur la structure du portail CESU v2
-    # Adapter si l'interface évolue.
-    SELECTEURS = {
-        # Navigation vers les déclarations
-        "menu_declarations": "a[href*='mesDeclarations'], a[href*='declarations'], nav a",
-        # Tableau des déclarations
-        "tableau_declarations": "table.tableau-declarations, table[class*='declaration'], .liste-declarations",
-        # Lignes du tableau
-        "lignes": "tbody tr, .ligne-declaration",
-        # Cellules clés par index ou attribut data-*
-        "employe": "td:nth-child(1), [data-employe], .nom-employe",
-        "periode": "td:nth-child(2), [data-periode], .periode",
-        "brut": "td:nth-child(3), [data-brut], .salaire-brut",
-        "net": "td:nth-child(4), [data-net], .salaire-net",
-        "cotis_patronale": "td:nth-child(5), [data-cotis-pat], .cotisation-patronale",
-        "cotis_salariale": "td:nth-child(6), [data-cotis-sal], .cotisation-salariale",
-    }
+    # La réponse peut être un dict ou une liste
+    items = []
+    if isinstance(data, list):
+        items = data
+    elif isinstance(data, dict):
+        # Chercher une clé contenant les déclarations
+        for key in ["declarations", "bulletins", "lignes", "data", "content", "items",
+                    "listDeclarations", "listBulletins", "voletSocial", "results"]:
+            if key in data and isinstance(data[key], list):
+                items = data[key]
+                break
+        if not items:
+            # Peut-être que la réponse elle-même est une seule déclaration
+            items = [data]
 
-    try:
-        # Rechercher et cliquer sur le menu "Mes déclarations"
-        menu_links = page.locator("nav a, .menu a, header a, aside a").all()
-        declaration_link = None
+    for item in items:
+        if not isinstance(item, dict):
+            continue
 
-        for link in menu_links:
-            try:
-                texte = link.inner_text().strip().lower()
-                href = link.get_attribute("href") or ""
-                if any(mot in texte for mot in ["déclaration", "declaration", "bulletin", "salarié"]):
-                    declaration_link = link
-                    break
-                if any(mot in href for mot in ["declaration", "bulletin", "salarie"]):
-                    declaration_link = link
-                    break
-            except Exception:
-                continue
+        record = {
+            "employe": "",
+            "mois": "",
+            "mois_num": 0,
+            "annee": 0,
+            "brut": 0.0,
+            "net": 0.0,
+            "cotis_pat": 0.0,
+            "cotis_sal": 0.0,
+        }
 
-        if declaration_link:
-            declaration_link.click()
-            page.wait_for_load_state("networkidle", timeout=15_000)
-        else:
-            # Tentative de navigation directe vers les URLs connues du portail CESU
-            urls_essais = [
-                "https://www.cesu.urssaf.fr/cesuwebsite/web/index.html#/mes-declarations",
-                "https://www.cesu.urssaf.fr/cesuwebsite/web/index.html#/declarations",
-                "https://www.cesu.urssaf.fr/cesuwebsite/web/index.html#/bulletins",
-            ]
-            for url in urls_essais:
-                page.goto(url, timeout=10_000)
-                page.wait_for_load_state("networkidle", timeout=10_000)
-                if page.locator("table, .declaration, .bulletin").count() > 0:
-                    break
+        # Extraction adaptative — chercher les champs par patterns de noms
+        for k, v in item.items():
+            kl = k.lower()
 
-        # Filtrer par année si le portail le permet
-        # Chercher un sélecteur d'année ou un champ filtre
-        selects = page.locator("select").all()
-        for sel in selects:
-            try:
-                options = sel.locator("option").all()
-                for opt in options:
-                    if str(annee) in (opt.inner_text() or ""):
-                        sel.select_option(value=opt.get_attribute("value") or str(annee))
-                        page.wait_for_load_state("networkidle", timeout=5_000)
-                        break
-            except Exception:
-                continue
+            # Nom de l'employé
+            if any(mot in kl for mot in ["salarie", "employe", "nom", "prenom", "identite"]):
+                if isinstance(v, str) and v.strip():
+                    if record["employe"]:
+                        record["employe"] += " " + v.strip()
+                    else:
+                        record["employe"] = v.strip()
+                elif isinstance(v, dict):
+                    # Objet employé avec nom/prenom
+                    nom = v.get("nom", v.get("nomFamille", ""))
+                    prenom = v.get("prenom", "")
+                    record["employe"] = f"{prenom} {nom}".strip()
 
-        # Extraire les lignes du tableau
-        lignes = page.locator("tbody tr, .ligne-declaration, [class*='row-declaration']").all()
+            # Période / mois
+            if any(mot in kl for mot in ["periode", "mois", "date", "month"]):
+                if isinstance(v, str):
+                    # Format "01/2025" ou "2025-01" ou "Janvier 2025"
+                    m = re.search(r"(\d{1,2})[/\-](\d{4})", str(v))
+                    if m:
+                        record["mois_num"] = int(m.group(1))
+                        record["annee"] = int(m.group(2))
+                    else:
+                        m = re.search(r"(\d{4})[/\-](\d{1,2})", str(v))
+                        if m:
+                            record["annee"] = int(m.group(1))
+                            record["mois_num"] = int(m.group(2))
+                elif isinstance(v, int):
+                    if 1 <= v <= 12 and "mois" in kl:
+                        record["mois_num"] = v
+                    elif v > 2000:
+                        record["annee"] = v
 
-        if not lignes:
-            print("  [AVERTISSEMENT] Aucune ligne de déclaration trouvée.", file=sys.stderr)
-            print("  Vérifiez que vous êtes bien sur la page des déclarations.", file=sys.stderr)
-            return []
+            if "annee" in kl or "year" in kl or "exercice" in kl:
+                if isinstance(v, int) and v > 2000:
+                    record["annee"] = v
 
-        for ligne in lignes:
-            try:
-                cellules = ligne.locator("td").all()
-                if len(cellules) < 3:
-                    continue
+            # Montants
+            montant = None
+            if isinstance(v, (int, float)):
+                montant = float(v)
+            elif isinstance(v, str):
+                # "1 234,56" ou "1234.56"
+                cleaned = v.replace("\xa0", "").replace(" ", "").replace("€", "").replace(",", ".")
+                try:
+                    montant = float(cleaned)
+                except ValueError:
+                    pass
 
-                # Extraction des cellules — l'ordre peut varier selon la version du portail
-                textes = [c.inner_text().strip() for c in cellules]
+            if montant is not None:
+                if any(mot in kl for mot in ["brut", "salaireBrut", "remuneration_brute"]):
+                    record["brut"] = montant
+                elif any(mot in kl for mot in ["net", "salaireNet", "remuneration_nette", "netApayer"]):
+                    record["net"] = montant
+                elif any(mot in kl for mot in ["cotisPatron", "patronal", "partEmployeur", "cotisation_employeur"]):
+                    record["cotis_pat"] = montant
+                elif any(mot in kl for mot in ["cotisSalari", "salarial", "partSalari", "cotisation_salarie"]):
+                    record["cotis_sal"] = montant
+                elif "cotis" in kl or "contribution" in kl:
+                    # Cotisation générique — attribuer à patronale par défaut
+                    if record["cotis_pat"] == 0:
+                        record["cotis_pat"] = montant
 
-                # Heuristique : chercher la cellule contenant un mois
-                mois_num = None
-                employe = ""
-                brut = "0,00"
-                net = "0,00"
-                cotis_pat = "0,00"
-                cotis_sal = "0,00"
-
-                for i, texte in enumerate(textes):
-                    # Détection du mois
-                    for num, nom in MOIS_FR.items():
-                        if nom.lower() in texte.lower() or f"{num:02d}/{annee}" in texte or f"{num}/{annee}" in texte:
-                            mois_num = num
-                            break
-
-                    # Détection des montants (format : "1 234,56" ou "1234.56")
-                    import re
-                    if re.match(r"[\d\s]+[,\.]\d{2}", texte.replace("\xa0", " ")):
-                        montant = texte.replace("\xa0", "").replace(" ", "").replace("€", "").strip()
-                        # Attribution par position relative (ordre typique du portail CESU)
-                        if i == len(textes) - 4:
-                            brut = montant
-                        elif i == len(textes) - 3:
-                            cotis_pat = montant
-                        elif i == len(textes) - 2:
-                            cotis_sal = montant
-                        elif i == len(textes) - 1:
-                            net = montant
-
-                    # Premier champ non-montant = nom employé
-                    if i == 0 and not re.match(r"[\d\s]+[,\.]\d{2}", texte):
-                        employe = texte
-
-                if mois_num is None:
-                    continue
-
-                if mois_num < mois_debut or mois_num > mois_fin:
-                    continue
-
-                resultats.append({
-                    "employe": employe or "—",
-                    "mois": MOIS_FR[mois_num],
-                    "mois_num": mois_num,
-                    "annee": annee,
-                    "brut": brut,
-                    "net": net,
-                    "cotis_pat": cotis_pat,
-                    "cotis_sal": cotis_sal,
-                })
-
-            except Exception as e:
-                print(f"  [AVERTISSEMENT] Ligne ignorée : {e}", file=sys.stderr)
-                continue
-
-    except Exception as e:
-        print(f"  [ERREUR] Navigation échouée : {e}", file=sys.stderr)
+        # Ne garder que les enregistrements avec au moins un montant
+        if record["brut"] > 0 or record["net"] > 0 or record["cotis_pat"] > 0:
+            if record["mois_num"] > 0:
+                record["mois"] = MOIS_FR.get(record["mois_num"], str(record["mois_num"]))
+            resultats.append(record)
 
     return resultats
 
 
-def parser_montant(s):
-    """Convertit une chaîne montant ('1 234,56' ou '1234.56') en float."""
-    try:
-        return float(s.replace("\xa0", "").replace(" ", "").replace(",", "."))
-    except (ValueError, AttributeError):
-        return 0.0
+# --- Formatage Markdown ---
 
 
-def formater_montant(v):
-    """Formate un float en chaîne '1 234,56 €'."""
+def formater_montant(v: float) -> str:
+    """Formate un float en '1 234,56 €'."""
     s = f"{v:,.2f}".replace(",", "X").replace(".", ",").replace("X", " ")
     return f"{s} €"
 
 
-def generer_markdown(resultats, annee, mois_debut, mois_fin):
-    """Génère un tableau Markdown à partir des résultats."""
+def generer_markdown(resultats: list, raw_data=None) -> str:
+    """Génère le tableau Markdown de sortie."""
+    lignes = []
+
     if not resultats:
-        return (
-            f"## Données CESU URSSAF — {annee} ({MOIS_FR[mois_debut]} à {MOIS_FR[mois_fin]})\n\n"
-            "_Aucune déclaration trouvée pour cette période._\n"
-        )
+        lignes.append("## Données CESU URSSAF\n")
+        lignes.append("_Aucune déclaration structurée extraite._\n")
+        if raw_data:
+            lignes.append("### Données brutes JSON\n")
+            lignes.append("```json")
+            lignes.append(json.dumps(raw_data, indent=2, ensure_ascii=False)[:3000])
+            lignes.append("```\n")
+            lignes.append("_Partagez ce JSON avec Claude pour qu'il puisse adapter le parsing._")
+        return "\n".join(lignes)
 
-    # Trier par employé puis par mois
-    resultats_tries = sorted(resultats, key=lambda r: (r["employe"], r["mois_num"]))
+    # Trier par employé puis mois
+    resultats_tries = sorted(resultats, key=lambda r: (r["employe"], r.get("annee", 0), r["mois_num"]))
 
-    lignes_md = []
-    lignes_md.append(f"## Données CESU URSSAF — {annee} ({MOIS_FR[mois_debut]} à {MOIS_FR[mois_fin]})\n")
-    lignes_md.append(
-        "| Employé | Mois | Salaire brut | Salaire net | Cotis. patronales | Cotis. salariales | Coût total employeur |"
+    lignes.append("## Données CESU URSSAF\n")
+    lignes.append(
+        "| Employé | Période | Salaire brut | Salaire net | Cotis. patronales | Cotis. salariales | Coût employeur |"
     )
-    lignes_md.append(
-        "|---------|------|:------------:|:-----------:|:-----------------:|:-----------------:|:--------------------:|"
+    lignes.append(
+        "|---------|---------|:------------:|:-----------:|:-----------------:|:-----------------:|:--------------:|"
     )
 
     tot_brut = tot_net = tot_pat = tot_sal = 0.0
 
     for r in resultats_tries:
-        brut_v = parser_montant(r["brut"])
-        net_v = parser_montant(r["net"])
-        pat_v = parser_montant(r["cotis_pat"])
-        sal_v = parser_montant(r["cotis_sal"])
-        cout_total = brut_v + pat_v  # coût total employeur = brut + cotisations patronales
+        brut = r["brut"]
+        net = r["net"]
+        pat = r["cotis_pat"]
+        sal = r["cotis_sal"]
+        cout = brut + pat
 
-        tot_brut += brut_v
-        tot_net += net_v
-        tot_pat += pat_v
-        tot_sal += sal_v
+        tot_brut += brut
+        tot_net += net
+        tot_pat += pat
+        tot_sal += sal
 
-        lignes_md.append(
-            f"| {r['employe']} | {r['mois']} {r['annee']} "
-            f"| {formater_montant(brut_v)} "
-            f"| {formater_montant(net_v)} "
-            f"| {formater_montant(pat_v)} "
-            f"| {formater_montant(sal_v)} "
-            f"| {formater_montant(cout_total)} |"
+        periode = f"{r['mois']} {r['annee']}" if r["mois"] else "—"
+        lignes.append(
+            f"| {r['employe'] or '—'} | {periode} "
+            f"| {formater_montant(brut)} "
+            f"| {formater_montant(net)} "
+            f"| {formater_montant(pat)} "
+            f"| {formater_montant(sal)} "
+            f"| {formater_montant(cout)} |"
         )
 
-    # Ligne totaux
     tot_cout = tot_brut + tot_pat
-    lignes_md.append(
+    lignes.append(
         f"| **TOTAL** | — "
         f"| **{formater_montant(tot_brut)}** "
         f"| **{formater_montant(tot_net)}** "
@@ -269,55 +304,112 @@ def generer_markdown(resultats, annee, mois_debut, mois_fin):
         f"| **{formater_montant(tot_cout)}** |"
     )
 
-    lignes_md.append("")
-    lignes_md.append(f"_Extrait le {datetime.now().strftime('%d/%m/%Y à %H:%M')} — {len(resultats)} déclaration(s) trouvée(s)_")
+    lignes.append("")
+    lignes.append(
+        f"_Extrait le {datetime.now().strftime('%d/%m/%Y à %H:%M')} "
+        f"— {len(resultats)} déclaration(s)_"
+    )
 
-    return "\n".join(lignes_md)
+    return "\n".join(lignes)
+
+
+# --- Mode fichier JSON local ---
+
+
+def lire_fichier_json(chemin: str) -> dict:
+    """Lit un fichier JSON local."""
+    try:
+        with open(chemin, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"Erreur : fichier non trouvé : {chemin}", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Erreur : JSON invalide dans {chemin} : {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+# --- Point d'entrée ---
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Extracteur CESU URSSAF — récupère salaires et cotisations",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Exemples :
+  # Replay d'une commande curl copiée depuis DevTools
+  python3 scrape_cesu.py --curl "$(pbpaste)"
+
+  # Appel direct avec cookie
+  python3 scrape_cesu.py --cookie "JSESSIONID=abc" --url "https://..."
+
+  # Parser un fichier JSON déjà téléchargé
+  python3 scrape_cesu.py --fichier response.json
+        """,
+    )
+    parser.add_argument("--curl", type=str, help="Commande curl complète (entre guillemets)")
+    parser.add_argument("--cookie", type=str, help="Cookie de session (JSESSIONID=...)")
+    parser.add_argument("--url", type=str, help="URL de l'API à appeler")
+    parser.add_argument("--fichier", type=str, help="Fichier JSON local à parser")
+    parser.add_argument("--raw", action="store_true", help="Afficher aussi le JSON brut")
+    return parser.parse_args()
 
 
 def main():
     args = parse_args()
 
-    if args.mois_debut < 1 or args.mois_debut > 12:
-        print("Erreur : --mois-debut doit être entre 1 et 12", file=sys.stderr)
-        sys.exit(1)
-    if args.mois_fin < 1 or args.mois_fin > 12:
-        print("Erreur : --mois-fin doit être entre 1 et 12", file=sys.stderr)
-        sys.exit(1)
-    if args.mois_debut > args.mois_fin:
-        print("Erreur : --mois-debut doit être ≤ --mois-fin", file=sys.stderr)
-        sys.exit(1)
+    data = None
 
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        print("Erreur : Playwright n'est pas installé.", file=sys.stderr)
-        print("Installez-le avec : pip3 install playwright && python3 -m playwright install chromium", file=sys.stderr)
-        sys.exit(1)
+    if args.fichier:
+        # Mode fichier local
+        print(f"  Lecture de {args.fichier}...", file=sys.stderr)
+        data = lire_fichier_json(args.fichier)
 
-    resultats = []
-
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=False, slow_mo=300)
-        context = browser.new_context(viewport={"width": 1280, "height": 900})
-        page = context.new_page()
-
-        try:
-            page.goto(CESU_URL, timeout=30_000)
-            page.wait_for_load_state("domcontentloaded", timeout=15_000)
-        except Exception as e:
-            print(f"Erreur : impossible d'ouvrir le portail CESU : {e}", file=sys.stderr)
-            browser.close()
+    elif args.curl:
+        # Mode replay curl
+        parsed = parse_curl(args.curl)
+        if not parsed["url"]:
+            print("Erreur : impossible d'extraire l'URL de la commande curl.", file=sys.stderr)
+            print("Assurez-vous de copier la commande complète depuis DevTools.", file=sys.stderr)
             sys.exit(1)
+        data = executer_requete(parsed)
 
-        attendre_connexion(page)
+    elif args.cookie and args.url:
+        # Mode cookie + URL direct
+        cookies = {}
+        for pair in args.cookie.split(";"):
+            if "=" in pair:
+                k, v = pair.strip().split("=", 1)
+                cookies[k.strip()] = v.strip()
+        parsed = {
+            "url": args.url,
+            "method": "GET",
+            "headers": {
+                "Accept": "application/json",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+            },
+            "cookies": cookies,
+            "data": None,
+        }
+        data = executer_requete(parsed)
 
-        resultats = extraire_declarations(page, args.annee, args.mois_debut, args.mois_fin)
+    else:
+        print("Erreur : spécifiez --curl, --fichier, ou --cookie + --url", file=sys.stderr)
+        print("Utilisez --help pour voir les exemples.", file=sys.stderr)
+        sys.exit(1)
 
-        browser.close()
-
-    markdown = generer_markdown(resultats, args.annee, args.mois_debut, args.mois_fin)
+    # Extraire et formater
+    resultats = extraire_declarations(data)
+    markdown = generer_markdown(resultats, raw_data=data if (args.raw or not resultats) else None)
     print(markdown)
+
+    # Si aucun résultat structuré, afficher un guide
+    if not resultats:
+        print("\n---\n", file=sys.stderr)
+        print("  Pas de données structurées trouvées.", file=sys.stderr)
+        print("  Le JSON brut est affiché ci-dessus pour analyse.", file=sys.stderr)
+        print("  Partagez-le avec Claude pour adapter l'extraction.", file=sys.stderr)
 
 
 if __name__ == "__main__":

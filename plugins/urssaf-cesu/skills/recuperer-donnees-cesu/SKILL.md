@@ -1,7 +1,7 @@
 ---
 name: recuperer-donnees-cesu
-description: Utiliser ce skill pour récupérer les données de salaire et cotisations depuis le portail CESU URSSAF. Phrases déclencheurs : "récupère mes données CESU", "scrape URSSAF", "récupère mes salaires URSSAF", "récupère mes cotisations CESU", "télécharge mes bulletins de salaire URSSAF", "extraire données URSSAF".
-version: 1.0.0
+description: Utiliser ce skill pour récupérer les données de salaire et cotisations depuis le portail CESU URSSAF. Phrases déclencheurs : "récupère mes données CESU", "scrape URSSAF", "récupère mes salaires URSSAF", "cotisations CESU", "données CESU", "bulletins URSSAF".
+version: 2.0.0
 allowed-tools: "Bash"
 ---
 
@@ -9,87 +9,96 @@ allowed-tools: "Bash"
 
 ## Objectif
 
-Ouvrir automatiquement le portail cesu.urssaf.fr dans un navigateur, attendre que l'utilisateur se connecte manuellement, puis extraire les données de salaire et cotisations pour tous les employés sur la période demandée. Produire un tableau Markdown structuré exploitable par d'autres skills.
+Extraire les données de salaire et cotisations depuis le portail cesu.urssaf.fr en rejouant un appel API copié depuis le navigateur de l'utilisateur. Produit un tableau Markdown structuré.
 
 ## Processus
 
-### Étape 1 — Demander la période
+### Étape 1 — Guider l'utilisateur pour capturer la requête API
 
-Avant toute action, demander à l'utilisateur :
+Expliquer à l'utilisateur ce qu'il doit faire dans son navigateur :
 
-> Quelle période souhaitez-vous extraire ?
-> - Année (ex : 2025)
-> - Mois de début (ex : 1 pour janvier)
-> - Mois de fin (ex : 12 pour décembre)
+> **Comment récupérer la requête API depuis votre navigateur :**
 >
-> Exemple : *"2025, janvier à décembre"* ou *"2024, toute l'année"*
+> 1. Ouvrez **cesu.urssaf.fr** dans Chrome/Safari/Firefox
+> 2. Connectez-vous à votre espace
+> 3. Ouvrez les **DevTools** (F12 ou Cmd+Option+I sur Mac)
+> 4. Cliquez sur l'onglet **Network** (Réseau)
+> 5. Cochez **XHR/Fetch** pour filtrer
+> 6. Naviguez vers **"Mes déclarations"** ou **"Mes bulletins de salaire"**
+> 7. Repérez la requête qui contient les données (réponse JSON avec des montants)
+> 8. Clic droit sur cette requête → **"Copy as cURL"** (Copier comme cURL)
+> 9. Collez le résultat ici
 
-Mémoriser les valeurs : `ANNEE`, `MOIS_DEBUT`, `MOIS_FIN`.
+Si l'utilisateur ne sait pas quelle requête choisir, lui dire de chercher :
+- Les requêtes dont la réponse (onglet Preview/Response) contient des montants, noms d'employés, ou dates
+- Les URLs contenant "declaration", "bulletin", "salaire", "cotisation"
+- La plus grosse réponse JSON (en taille)
 
-### Étape 2 — Vérifier et installer Playwright
-
-Vérifier si Playwright est disponible :
-
-```bash
-python3 -c "import playwright" 2>/dev/null && echo "OK" || echo "ABSENT"
-```
-
-Si absent, l'installer :
-
-```bash
-pip3 install playwright && python3 -m playwright install chromium
-```
-
-Informer l'utilisateur du résultat (installation réussie ou déjà présent).
-
-### Étape 3 — Localiser le script
-
-Le script se trouve dans le dossier `scripts/` du plugin. Trouver son chemin absolu :
+### Étape 2 — Localiser et exécuter le script
 
 ```bash
-find ~/.claude/plugins -name "scrape_cesu.py" 2>/dev/null | head -1
+SCRIPT=$(find ~/.claude/plugins -name "scrape_cesu.py" 2>/dev/null | head -1)
+echo $SCRIPT
 ```
 
-### Étape 4 — Lancer le script
+### Étape 3a — Mode curl (recommandé)
 
-Exécuter le script avec les paramètres de période. Le script ouvrira un navigateur Chromium visible — l'utilisateur devra s'y connecter manuellement.
+Une fois la commande curl récupérée, l'exécuter :
 
 ```bash
-python3 <CHEMIN_SCRIPT> --annee <ANNEE> --mois-debut <MOIS_DEBUT> --mois-fin <MOIS_FIN>
+python3 "$SCRIPT" --curl '<COMMANDE_CURL_COPIÉE>'
 ```
 
-Informer l'utilisateur avant le lancement :
+**Important** : Encadrer la commande curl avec des guillemets simples externes pour éviter les problèmes d'échappement.
 
-> Un navigateur Chromium va s'ouvrir sur cesu.urssaf.fr.
-> Connectez-vous avec vos identifiants habituels.
-> Une fois sur le tableau de bord, revenez dans le terminal et appuyez sur Entrée.
+### Étape 3b — Mode fichier JSON (alternative)
 
-**Note** : Le script est interactif (il attend une saisie clavier). La commande Bash doit être exécutée avec un timeout suffisant (5 minutes minimum).
+Si l'utilisateur préfère sauvegarder la réponse JSON depuis DevTools (onglet Response → copier) :
 
-### Étape 5 — Présenter les résultats
+```bash
+python3 "$SCRIPT" --fichier /chemin/vers/reponse.json
+```
 
-Récupérer la sortie stdout du script et la présenter telle quelle. Elle contient un tableau Markdown avec :
+### Étape 3c — Mode cookie + URL (alternative)
 
-| Employé | Mois | Salaire brut | Salaire net | Cotis. patronales | Cotis. salariales | Coût total employeur |
-|---------|------|-------------|------------|------------------|------------------|--------------------|
-| ...     | ...  | ...         | ...        | ...              | ...              | ...                |
-| **TOTAL** | — | X € | Y € | Z € | W € | T € |
+Si l'utilisateur fournit séparément le cookie et l'URL :
 
-Puis proposer à l'utilisateur les actions suivantes :
-- Exporter ces données vers Excel (via le skill `xlsx`)
-- Les intégrer au pipeline fiscal IFU existant
-- Les analyser par employé ou par période
+```bash
+python3 "$SCRIPT" --cookie "JSESSIONID=abc123;autreC=val" --url "https://www.cesu.urssaf.fr/..."
+```
 
-## Gestion des erreurs
+### Étape 4 — Interpréter les résultats
 
-- **Playwright introuvable après installation** : demander à l'utilisateur de relancer Claude Code
-- **Navigateur qui ne s'ouvre pas** : vérifier que `playwright install chromium` a bien téléchargé les binaires
-- **Script non trouvé** : demander à l'utilisateur de vérifier que le plugin est bien à jour (`~/.claude/plugins/marketplaces/plugins-claude/`)
-- **Données vides** : vérifier que l'utilisateur est bien connecté et sur le tableau de bord CESU avant d'appuyer sur Entrée
+**Cas 1 : Tableau Markdown rempli** → Présenter les résultats directement et proposer :
+- Export vers Excel
+- Intégration au pipeline fiscal
+- Analyse par employé ou par période
+
+**Cas 2 : "Aucune déclaration structurée extraite"** + JSON brut affiché → Le script n'a pas reconnu la structure. Analyser le JSON brut affiché et :
+1. Identifier les champs contenant salaires/cotisations
+2. Proposer à l'utilisateur d'adapter le parsing ou de copier une autre requête API
+
+**Cas 3 : Erreur HTTP 401/403** → Le cookie a expiré. Demander à l'utilisateur de se reconnecter et recopier un curl frais.
+
+## Dépendances
+
+- `httpx` (déjà installé dans le venv du projet IFU). Sinon : `pip3 install httpx`
+- Pas de Playwright, pas de navigateur automatisé
+
+## Format de sortie
+
+```markdown
+## Données CESU URSSAF
+
+| Employé | Période | Salaire brut | Salaire net | Cotis. patronales | Cotis. salariales | Coût employeur |
+|---------|---------|:---:|:---:|:---:|:---:|:---:|
+| Prénom Nom | Janvier 2025 | 1 234,56 € | 987,65 € | 432,10 € | 246,91 € | 1 666,66 € |
+| **TOTAL** | — | **X €** | **Y €** | **Z €** | **W €** | **T €** |
+```
 
 ## Règles importantes
 
-- Ne jamais stocker ni afficher les identifiants URSSAF de l'utilisateur
-- Ne lancer le script qu'après confirmation de la période par l'utilisateur
-- Si le script retourne une erreur, l'afficher intégralement pour faciliter le diagnostic
-- Montants toujours en euros, formatés `X XXX,XX €`
+- Ne jamais afficher les cookies/tokens de l'utilisateur dans la réponse
+- Si le JSON brut contient des données personnelles sensibles (NIR, adresse), les masquer
+- Informer l'utilisateur que la session expire (typiquement 20-30 min) — il devra recopier un curl si ça échoue
+- Proposer d'itérer si la première requête copiée n'est pas la bonne
