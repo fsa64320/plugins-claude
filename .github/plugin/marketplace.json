@@ -78,6 +78,15 @@
         "plugins/gestion-senior-famille-france/skills/succession-senior-conflit/SKILL.md"
       ],
       "mcpServers": "plugins/gestion-senior-famille-france/.mcp.json"
+    },
+    {
+      "name": "urssaf-cesu",
+      "description": "Récupère les données de salaire et cotisations depuis le portail CESU URSSAF (cesu.urssaf.fr) via browser automation Playwright. Produit un tableau Markdown exploitable par d'autres skills.",
+      "version": "1.0.0",
+      "source": "plugins/urssaf-cesu",
+      "skills": [
+        "plugins/urssaf-cesu/skills/recuperer-donnees-cesu/SKILL.md"
+      ]
     }
   ]
 }

@@ -76,6 +76,20 @@
         "path": "plugins/gestion-senior-famille-france",
         "ref": "main"
       }
+    },
+    {
+      "name": "urssaf-cesu",
+      "description": "Récupère les données de salaire et cotisations depuis le portail CESU URSSAF (cesu.urssaf.fr) via browser automation Playwright. Produit un tableau Markdown exploitable par d'autres skills.",
+      "author": {
+        "name": "Frederick Sales"
+      },
+      "category": "productivity",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/fsa64320/plugins-claude.git",
+        "path": "plugins/urssaf-cesu",
+        "ref": "main"
+      }
     }
   ]
 }
