@@ -25,72 +25,58 @@ Si ce n'est pas le cas, lance d'abord le skill `outlook-connect`.
 
 ---
 
-## Stratégie d'accès API
+## Stratégie d'accès aux données
 
-Avant toute requête, détermine la méthode disponible via `browser_evaluate` :
+> ⚠️ **Contrainte MCAS** : Le proxy Microsoft Defender for Cloud Apps (MCAS) bloque les appels
+> `fetch()` vers `graph.microsoft.com` et les appels à `owa/service.svc` initiés depuis JavaScript
+> (réponse 401 malgré token valide dans sessionStorage). L'API OWA nécessite des headers CSRF
+> HttpOnly non accessibles via JS.
 
-```javascript
-async () => {
-  // Essai 1 : token MSAL dans sessionStorage → Graph API
-  const keys = Object.keys(sessionStorage);
-  const tokenKey = keys.find(k =>
-    k.includes('accesstoken') &&
-    (k.includes('graph') || k.includes('outlook'))
-  );
-  if (tokenKey) {
-    const item = JSON.parse(sessionStorage.getItem(tokenKey));
-    if (item?.secret && new Date(item.expiresOn * 1000) > new Date()) {
-      return { method: 'graph-bearer', token: item.secret };
-    }
-  }
-  // Essai 2 : fetch avec credentials (cookies de session)
-  const test = await fetch('https://graph.microsoft.com/v1.0/me', { credentials: 'include' });
-  if (test.ok) return { method: 'graph-cookie' };
-  // Fallback : API OWA
-  return { method: 'owa' };
-}
-```
+**Méthode principale : scraping DOM**  
+Outlook Web App rend les emails dans le DOM. On extrait directement le contenu visible.
 
-Selon le résultat, utilise la méthode correspondante dans les opérations ci-dessous.
+**Méthode secondaire : screenshot + analyse visuelle**  
+Prendre un screenshot et analyser visuellement la liste des emails si le DOM est insuffisant.
 
 ---
 
-## Opération 1 — Lister les emails récents
+## Opération 1 — Lister les emails récents (DOM scraping)
 
 **Déclencheur** : l'utilisateur veut voir ses emails récents, sa boîte de réception.
 
-### Avec Graph API (méthode `graph-bearer` ou `graph-cookie`)
-
 ```javascript
-async (bearerToken) => {
-  const headers = bearerToken
-    ? { Authorization: `Bearer ${bearerToken}` }
-    : {};
-  const resp = await fetch(
-    'https://graph.microsoft.com/v1.0/me/messages' +
-    '?$top=20&$orderby=receivedDateTime desc' +
-    '&$select=id,subject,from,receivedDateTime,isRead,bodyPreview',
-    { credentials: 'include', headers }
-  );
-  const data = await resp.json();
-  return {
-    total: data.value?.length,
-    emails: data.value?.map(m => ({
-      id: m.id,
-      subject: m.subject,
-      from: m.from?.emailAddress?.address,
-      fromName: m.from?.emailAddress?.name,
-      received: m.receivedDateTime,
-      isRead: m.isRead,
-      preview: m.bodyPreview?.substring(0, 100)
-    }))
-  };
+() => {
+  const rows = document.querySelectorAll('[role="option"], [data-convid], [data-itemid]');
+  const emails = [];
+  const listEl = document.querySelector('[role="list"], [role="listbox"]');
+  const listText = listEl ? listEl.innerText : '';
+
+  rows.forEach((row, i) => {
+    if (i >= 25) return;
+    const fullText = row.innerText || '';
+    const isUnread = fullText.includes('Non lu');
+    const hasAttachment = fullText.includes('pièces jointes') || fullText.includes('Pièce jointe');
+    const isReplied = fullText.includes('répondu') || fullText.includes('A répondu');
+    const isPinned = fullText.includes('Épinglés') || fullText.includes('Épinglé');
+
+    emails.push({
+      index: i + 1,
+      text: fullText.replace(/\n+/g, ' | ').substring(0, 200),
+      isUnread,
+      hasAttachment,
+      isReplied,
+      isPinned
+    });
+  });
+
+  return { count: rows.length, emails, rawList: listText.substring(0, 3000) };
 }
 ```
 
-Construis la fonction avec le token si disponible, puis exécute via `browser_evaluate`.
+Exécute via `browser_evaluate`, puis formate les résultats en tableau markdown avec :
+- Expéditeur, Objet, Date, indicateurs (📎 pièce jointe, 🔵 non lu, 📌 épinglé, ↩️ répondu)
 
-Présente les résultats en liste avec : expéditeur, objet, date, statut lu/non-lu, aperçu.
+Si le DOM est vide ou insuffisant, prends un screenshot pour lire visuellement la liste.
 
 ---
 
