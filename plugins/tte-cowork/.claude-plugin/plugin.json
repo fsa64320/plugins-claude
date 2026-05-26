@@ -1,0 +1,9 @@
+{
+  "name": "tte-cowork",
+  "version": "0.1.0",
+  "description": "Se connecte à Confluence TDF (tdf.atlassian.net) via Playwright avec authentification OAuth Entra ID, et récupère des données via l'API REST Confluence.",
+  "author": {
+    "name": "Frederick Sales"
+  },
+  "keywords": ["confluence", "atlassian", "tdf", "totalenergies", "playwright", "oauth", "entra-id", "cowork"]
+}
