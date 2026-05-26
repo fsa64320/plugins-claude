@@ -1,55 +1,101 @@
-# Confluence TDF Plugin
+# TTE Cowork Plugin
 
 > ⚠️ **Prérequis obligatoire** : ce plugin nécessite le **plugin Playwright** pour fonctionner.  
 > Installez-le dans Claude Cowork avant d'utiliser ce plugin.
 
-Plugin Claude Cowork pour interagir avec l'instance Confluence de TotalEnergies Digital Factory (`tdf.atlassian.net`).
+Plugin Claude Cowork pour interagir avec les outils TotalEnergies :
+- **Confluence TDF** (`tdf.atlassian.net`) — base documentaire
+- **Outlook TotalEnergies** (`outlook.cloud.microsoft`) — messagerie
 
-## Ce que fait ce plugin
+Les deux services utilisent l'authentification OAuth 2.0 via Entra ID (Microsoft Identity Platform), avec proxy MCAS pour Outlook.
 
-- **Se connecter** à Confluence via votre compte TotalEnergies (OAuth Entra ID + MFA)
-- **Lister** tous les espaces Confluence accessibles
-- **Rechercher** des pages par mot-clé ou requête CQL
-- **Lire** le contenu textuel d'une page
-- **Lister** les pages récemment modifiées dans un espace
+---
 
-## Prérequis
-
-Ce plugin nécessite le **plugin Playwright** installé dans Claude Cowork.  
-Le plugin Playwright fournit les outils `mcp__plugin_playwright_playwright__*` utilisés pour piloter le navigateur.
-
-## Skills
+## Skills Confluence
 
 ### `confluence-connect`
-Ouvre une session Playwright sur Confluence et gère l'authentification OAuth.
+Gère la connexion à Confluence TDF via Playwright + OAuth Entra ID.
 
 **Exemples d'utilisation :**
 - "Connecte-toi à Confluence"
 - "Ouvre Confluence TDF"
 - "Vérifie si tu es connecté à Confluence"
+- "Authentifie-toi sur tdf.atlassian.net"
 
 ### `confluence-query`
-Interroge l'API Confluence une fois la session active.
+Interroge l'API REST Confluence une fois la session active.
 
 **Exemples d'utilisation :**
 - "Liste les espaces Confluence"
-- "Cherche les pages sur Kubernetes dans l'espace Digital Platforms"
-- "Lis la page intitulée Guide de déploiement"
-- "Montre-moi les 20 dernières pages modifiées dans l'espace DP"
-- "Trouve la documentation sur l'architecture Cloud"
+- "Cherche les pages sur [sujet]"
+- "Lis la page [titre]"
+- "Montre les pages récentes de l'espace [clé]"
+- "Recherche dans Confluence : [mot-clé]"
 
-## Workflow typique
+---
 
-1. **(Première fois)** "Connecte-toi à Confluence" → le navigateur s'ouvre → vous vous authentifiez → confirmation
-2. "Liste les espaces" → tableau des espaces disponibles
-3. "Cherche les pages sur [sujet]" → liste de résultats cliquables
-4. "Lis la page [titre]" → contenu textuel extrait
+## Skills Outlook
+
+### `outlook-connect`
+Gère la connexion complète : proxy MCAS → Microsoft login → Entra ID + MFA → confirmation.
+
+**Exemples d'utilisation :**
+- "Connecte-toi à Outlook"
+- "Ouvre ma messagerie TotalEnergies"
+- "Vérifie si tu es connecté à Outlook"
+
+### `outlook-query`
+Interroge la boîte mail Outlook une fois la session active (scraping DOM).
+
+**Exemples d'utilisation :**
+- "Montre-moi mes 10 derniers emails"
+- "Cherche les emails de jean.dupont@totalenergies.com"
+- "Trouve les emails avec 'budget Q2' dans l'objet"
+- "Lis l'email sur la réunion de demain"
+- "Liste mes dossiers de messagerie"
+- "Montre-moi mes emails non lus"
+
+---
+
+## Workflows typiques
+
+### Confluence
+1. "Connecte-toi à Confluence"
+   → Page Atlassian → OAuth Entra ID → MFA → confirmation
+2. "Liste les espaces Confluence" → liste des espaces disponibles
+3. "Cherche les pages sur [sujet]" → résultats CQL
+4. "Lis cette page" → contenu complet structuré
+
+### Outlook
+1. **(Première fois)** "Connecte-toi à Outlook"
+   → Page MCAS → clic automatique → page Microsoft login
+   → vous vous authentifiez → MFA → confirmation
+2. "Montre mes emails récents" → liste des 20 derniers emails
+3. "Cherche les emails de [nom]" → résultats de recherche
+4. "Lis cet email" → contenu complet structuré
 
 La session reste active plusieurs heures. Pas besoin de se reconnecter à chaque requête.
 
+---
+
 ## Architecture technique
 
-- **Authentification** : cookies HttpOnly via session Playwright (pas de token à stocker)
-- **API** : Confluence REST v1 (`/wiki/rest/api/`)
-- **Cloud ID** : `23cadbe4-5ee9-46f7-8a55-f7ac9c44041a`
-- **Instance** : `https://tdf.atlassian.net`
+### Confluence TDF
+
+| Élément | Valeur |
+|---------|--------|
+| URL | `https://tdf.atlassian.net/wiki` |
+| Cloud ID | `23cadbe4-5ee9-46f7-8a55-f7ac9c44041a` |
+| Authentification | OAuth 2.0 via Entra ID (SSO TotalEnergies) |
+| API | Confluence REST API v1 |
+| Accès token | Cookies de session (`fetch` avec `credentials: 'include'`) |
+
+### Outlook TotalEnergies
+
+| Élément | Valeur |
+|---------|--------|
+| URL d'entrée | `https://outlook.cloud.microsoft.mcas.ms/mail/` |
+| Proxy sécurité | Microsoft Defender for Cloud Apps (MCAS) |
+| URL finale | `https://outlook.cloud.microsoft/mail/` |
+| Authentification | OAuth 2.0 PKCE via Entra ID |
+| Données | Scraping DOM (Graph API bloqué par MCAS) |

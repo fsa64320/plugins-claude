@@ -1,11 +1,11 @@
 {
   "name": "tte-cowork",
-  "version": "0.1.0",
-  "description": "Se connecte à Confluence TDF (tdf.atlassian.net) via Playwright avec authentification OAuth Entra ID, et récupère des données via l'API REST Confluence.",
+  "version": "0.2.0",
+  "description": "Plugin TotalEnergies Cowork — accès à Confluence TDF (tdf.atlassian.net) et à la messagerie Outlook TotalEnergies (outlook.cloud.microsoft) via Playwright avec authentification OAuth Entra ID.",
   "author": {
     "name": "Frederick Sales"
   },
-  "keywords": ["confluence", "atlassian", "tdf", "totalenergies", "playwright", "oauth", "entra-id", "cowork"],
+  "keywords": ["confluence", "atlassian", "outlook", "tdf", "totalenergies", "playwright", "oauth", "entra-id", "cowork", "email"],
   "dependencies": {
     "plugins": [
       {
