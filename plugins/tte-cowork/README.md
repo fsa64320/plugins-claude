@@ -1,5 +1,8 @@
 # Confluence TDF Plugin
 
+> ⚠️ **Prérequis obligatoire** : ce plugin nécessite le **plugin Playwright** pour fonctionner.  
+> Installez-le dans Claude Cowork avant d'utiliser ce plugin.
+
 Plugin Claude Cowork pour interagir avec l'instance Confluence de TotalEnergies Digital Factory (`tdf.atlassian.net`).
 
 ## Ce que fait ce plugin

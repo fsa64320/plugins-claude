@@ -5,5 +5,14 @@
   "author": {
     "name": "Frederick Sales"
   },
-  "keywords": ["confluence", "atlassian", "tdf", "totalenergies", "playwright", "oauth", "entra-id", "cowork"]
+  "keywords": ["confluence", "atlassian", "tdf", "totalenergies", "playwright", "oauth", "entra-id", "cowork"],
+  "dependencies": {
+    "plugins": [
+      {
+        "name": "playwright",
+        "description": "Plugin Playwright — fournit les outils browser_navigate, browser_evaluate, browser_take_screenshot, etc.",
+        "required": true
+      }
+    ]
+  }
 }
