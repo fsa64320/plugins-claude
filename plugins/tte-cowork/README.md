@@ -6,8 +6,9 @@
 Plugin Claude Cowork pour interagir avec les outils TotalEnergies :
 - **Confluence TDF** (`tdf.atlassian.net`) — base documentaire
 - **Outlook TotalEnergies** (`outlook.cloud.microsoft`) — messagerie
+- **Microsoft Teams TotalEnergies** (`teams.microsoft.com`) — messagerie instantanée et canaux
 
-Les deux services utilisent l'authentification OAuth 2.0 via Entra ID (Microsoft Identity Platform), avec proxy MCAS pour Outlook.
+Les trois services utilisent l'authentification OAuth 2.0 via Entra ID (Microsoft Identity Platform), avec proxy MCAS pour Outlook et Teams.
 
 ---
 
@@ -78,6 +79,41 @@ La session reste active plusieurs heures. Pas besoin de se reconnecter à chaque
 
 ---
 
+## Skills Teams
+
+### `teams-connect`
+Gère la connexion complète : proxy MCAS → Microsoft login → Entra ID + MFA → confirmation.
+
+**Exemples d'utilisation :**
+- "Connecte-toi à Teams"
+- "Ouvre Microsoft Teams"
+- "Vérifie si tu es connecté à Teams"
+
+### `teams-query`
+Interroge Teams via scraping DOM une fois la session active.
+
+**Exemples d'utilisation :**
+- "Liste mes équipes Teams"
+- "Montre-moi les canaux de [équipe]"
+- "Lis les messages du canal [nom]"
+- "Montre-moi mes conversations directes"
+- "Cherche [mot-clé] dans Teams"
+- "Qu'est-ce qu'il y a dans le canal [nom] ?"
+
+---
+
+## Workflow Teams
+
+1. **(Première fois)** "Connecte-toi à Teams"
+   → Page MCAS → clic automatique → page Microsoft login
+   → vous vous authentifiez → MFA → confirmation
+2. "Liste mes équipes" → liste des équipes et canaux
+3. "Lis les messages du canal [nom]" → fil de messages
+4. "Montre mes conversations directes" → liste des DMs
+5. "Cherche [sujet] dans Teams" → résultats de recherche
+
+---
+
 ## Architecture technique
 
 ### Confluence TDF
@@ -97,5 +133,15 @@ La session reste active plusieurs heures. Pas besoin de se reconnecter à chaque
 | URL d'entrée | `https://outlook.cloud.microsoft.mcas.ms/mail/` |
 | Proxy sécurité | Microsoft Defender for Cloud Apps (MCAS) |
 | URL finale | `https://outlook.cloud.microsoft/mail/` |
+| Authentification | OAuth 2.0 PKCE via Entra ID |
+| Données | Scraping DOM (Graph API bloqué par MCAS) |
+
+### Microsoft Teams TotalEnergies
+
+| Élément | Valeur |
+|---------|--------|
+| URL d'entrée | `https://teams.microsoft.com.mcas.ms/` |
+| Proxy sécurité | Microsoft Defender for Cloud Apps (MCAS) |
+| URL finale | `https://teams.microsoft.com/` |
 | Authentification | OAuth 2.0 PKCE via Entra ID |
 | Données | Scraping DOM (Graph API bloqué par MCAS) |
