@@ -1,0 +1,18 @@
+{
+  "name": "tte-outlook",
+  "version": "0.1.0",
+  "description": "Se connecte à Outlook TotalEnergies (outlook.cloud.microsoft) via Playwright avec authentification OAuth Entra ID + proxy MCAS, et récupère des emails via l'API Microsoft Graph.",
+  "author": {
+    "name": "Frederick Sales"
+  },
+  "keywords": ["outlook", "microsoft", "email", "graph-api", "totalenergies", "playwright", "oauth", "entra-id", "mcas", "cowork"],
+  "dependencies": {
+    "plugins": [
+      {
+        "name": "playwright",
+        "description": "Plugin Playwright — fournit les outils browser_navigate, browser_evaluate, browser_click, browser_take_screenshot, etc.",
+        "required": true
+      }
+    ]
+  }
+}
