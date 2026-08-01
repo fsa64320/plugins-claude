@@ -1,9 +1,0 @@
-{
-  "name": "skill-forge",
-  "version": "1.0.0",
-  "description": "Chaîne complète de fabrication d'un skill : concevoir, rédiger, évaluer avec des tests notés, puis publier dans un repo GitHub existant via le connecteur GitHub.",
-  "author": {
-    "name": "Frederick Sales",
-    "email": "frederick.sales@gmail.com"
-  }
-}
