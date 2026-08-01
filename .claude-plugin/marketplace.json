@@ -90,6 +90,20 @@
         "path": "plugins/urssaf-cesu",
         "ref": "main"
       }
+    },
+    {
+      "name": "skill-forge",
+      "description": "Chaîne complète de fabrication d'un skill : concevoir, rédiger, évaluer avec des tests notés, puis publier dans un repo GitHub existant via le connecteur GitHub.",
+      "author": {
+        "name": "Frederick Sales"
+      },
+      "category": "engineering",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/fsa64320/plugins-claude.git",
+        "path": "plugins/skill-forge",
+        "ref": "main"
+      }
     }
   ]
 }
