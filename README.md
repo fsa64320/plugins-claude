@@ -10,11 +10,12 @@ claude plugin marketplace add github:fsa64320/plugins-claude
 
 ## Plugins disponibles
 
-Le plugin `declaration-impot-france` a déménagé dans la marketplace [`sales-marketplace`](https://github.com/fsa64320/marketplace) :
+Les plugins `declaration-impot-france` (renommé `assistant-fiscal`) et `urssaf-cesu` ont déménagé dans la marketplace [`sales-marketplace`](https://github.com/fsa64320/marketplace) :
 
 ```bash
 claude plugin marketplace add fsa64320/marketplace
-claude plugin install declaration-impot-france@sales-marketplace
+claude plugin install assistant-fiscal@sales-marketplace
+claude plugin install urssaf-cesu@sales-marketplace
 ```
 
 ## Ajouter un nouveau plugin
