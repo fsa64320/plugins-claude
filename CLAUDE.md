@@ -140,7 +140,6 @@ Chaque plugin liste explicitement les chemins vers ses SKILL.md et son `.mcp.jso
 
 | Plugin | Skills |
 |--------|--------|
-| `declaration-impot-france` | `analyse-document-fiscal`, `optimisation-fiscale`, `expert-fiscal-qa`, `guide-declaration` |
 | `immobilier-locatif-france` | `analyse-bilan`, `analyse-compte-resultat`, `ratios-financiers` |
 | `particulier-employeur-france` | `guide-embauche-cesu`, `rupture-conventionnelle`, `declarations-cotisations`, `generation-documents` |
 | `architecture-agent-teams` | `architecture-team` |
