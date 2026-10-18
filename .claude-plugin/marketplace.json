@@ -36,20 +36,6 @@
       }
     },
     {
-      "name": "declaration-impot-france",
-      "description": "Assistant fiscal complet pour les contribuables français : analyse IFU/SCPI, guide déclaration 2042, optimisation, Q&A expert.",
-      "author": {
-        "name": "Frederick Sales"
-      },
-      "category": "productivity",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/fsa64320/plugins-claude.git",
-        "path": "plugins/declaration-impot-france",
-        "ref": "main"
-      }
-    },
-    {
       "name": "architecture-agent-teams",
       "description": "Équipe d'agents spécialisés pour résoudre des problématiques d'architecture : cybersécurité, architecte solution, Azure, AWS, avec des experts à la demande (authentification, emailing, BDD, DevOps, conformité, event-driven).",
       "author": {

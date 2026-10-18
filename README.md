@@ -10,19 +10,11 @@ claude plugin marketplace add github:fsa64320/plugins-claude
 
 ## Plugins disponibles
 
-### `declaration-impot-france`
-
-Assistant fiscal pour les contribuables français.
-
-| Skill | Rôle |
-|-------|------|
-| `analyse-document-fiscal` | Analyse un IFU, relevé SCPI ou attestation fiscale |
-| `optimisation-fiscale` | Compare les régimes et identifie les leviers fiscaux |
-| `expert-fiscal-qa` | Répond aux questions sur les règles fiscales françaises |
-| `guide-declaration` | Guide pas à pas pour remplir la déclaration 2042 |
+Le plugin `declaration-impot-france` a déménagé dans la marketplace [`sales-marketplace`](https://github.com/fsa64320/marketplace) :
 
 ```bash
-claude plugin install declaration-impot-france
+claude plugin marketplace add fsa64320/marketplace
+claude plugin install declaration-impot-france@sales-marketplace
 ```
 
 ## Ajouter un nouveau plugin
@@ -39,14 +31,9 @@ plugins-claude/
 ├── .claude-plugin/
 │   └── marketplace.json          ← index de tous les plugins
 ├── plugins/
-│   ├── declaration-impot-france/ ← plugin 1
-│   │   ├── .claude-plugin/plugin.json
-│   │   └── skills/
-│   │       ├── analyse-document-fiscal/SKILL.md
-│   │       ├── optimisation-fiscale/SKILL.md
-│   │       ├── expert-fiscal-qa/SKILL.md
-│   │       └── guide-declaration/SKILL.md
-│   └── <prochain-plugin>/        ← plugin 2, 3, ...
+│   └── <nom-du-plugin>/
+│       ├── .claude-plugin/plugin.json
+│       └── skills/<skill>/SKILL.md
 └── README.md
 ```
 

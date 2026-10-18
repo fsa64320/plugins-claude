@@ -10,19 +10,6 @@
   },
   "plugins": [
     {
-      "name": "declaration-impot-france",
-      "description": "Assistant fiscal complet pour les contribuables français. Analyse les documents fiscaux (IFU, relevés SCPI, attestations), guide la déclaration 2042/2044/2047, optimise la fiscalité et répond aux questions fiscales.",
-      "version": "1.2.0",
-      "source": "plugins/declaration-impot-france",
-      "skills": [
-        "plugins/declaration-impot-france/skills/analyse-document-fiscal/SKILL.md",
-        "plugins/declaration-impot-france/skills/expert-fiscal-qa/SKILL.md",
-        "plugins/declaration-impot-france/skills/guide-declaration/SKILL.md",
-        "plugins/declaration-impot-france/skills/optimisation-fiscale/SKILL.md"
-      ],
-      "mcpServers": "plugins/declaration-impot-france/.mcp.json"
-    },
-    {
       "name": "immobilier-locatif-france",
       "description": "Assistant d'analyse financière pour les sociétés de gestion immobilière locative françaises (SCI, foncières, SARL de famille). Analyse le bilan (LTV, FRNG, structure d'endettement), le compte de résultat (loyers, EBE locatif, cash-flow net) et les ratios spécialisés (DSCR, rendement brut/net, taux de vacance, effet de levier immobilier).",
       "version": "2.5.0",
